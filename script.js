@@ -1,6 +1,5 @@
 const room = document.getElementById("room");
 const reflectionShell = document.getElementById("roomReflectionShell");
-const floorReflectionLayer = document.getElementById("floorReflections");
 const ASSET_VERSION = "20260308-0526";
 const WALL_ANGLES = {
   wall_minus3: -90,
@@ -86,8 +85,8 @@ const LAYOUT = Object.fromEntries(
   WALL_NAMES.map((wallName, wallIndex) => [
     wallName,
     [
-      { x: 32, y: 45, w: 26, h: 26, art: wallIndex * 2, frame: wallIndex % 2 === 0 ? "wood" : "white" },
-      { x: 68, y: 45, w: 26, h: 26, art: wallIndex * 2 + 1, frame: wallIndex % 2 === 0 ? "white" : "wood" }
+      { x: 28, y: 36, w: 38, h: 34, art: wallIndex * 2, frame: wallIndex % 2 === 0 ? "wood" : "white" },
+      { x: 72, y: 36, w: 38, h: 34, art: wallIndex * 2 + 1, frame: wallIndex % 2 === 0 ? "white" : "wood" }
     ]
   ])
 );
@@ -138,39 +137,60 @@ function renderWalls() {
   });
 }
 
-function renderFloorReflections() {
-  if (!floorReflectionLayer) return;
 
-  floorReflectionLayer.replaceChildren();
+function buildDome() {
+  const container = document.getElementById("roomWalls");
+  if (!container) return;
 
-  const horizonY = window.innerHeight * 0.73;
-  const frameEls = document.querySelectorAll("#roomWalls .frame-container");
+  container.querySelectorAll(".dome-ring").forEach(el => el.remove());
 
-  frameEls.forEach((frameEl) => {
-    const rect = frameEl.getBoundingClientRect();
-    if (rect.bottom >= horizonY || rect.right <= 0 || rect.left >= window.innerWidth) {
-      return;
+  const segments = 16;
+  const domeHeight = 300;
+  const baseRadius = 1400;
+  const b = 361; // ellipse semi-minor axis (steeper dome, matches oculus at r=780)
+  const baseY = -502; // wall top (matches cornice)
+  const firstWall = container.querySelector(".wall");
+
+  for (let i = 0; i < segments; i++) {
+    const h0 = (i / segments) * domeHeight;
+    const h1 = ((i + 1) / segments) * domeHeight;
+    const hMid = (h0 + h1) / 2;
+
+    const outerR = baseRadius * Math.sqrt(Math.max(0, 1 - (h0 / b) ** 2));
+    const innerR = baseRadius * Math.sqrt(Math.max(0, 1 - (h1 / b) ** 2));
+
+    const el = document.createElement("div");
+    el.className = "dome-ring";
+
+    // Disc sized to outer radius + overlap
+    const size = (outerR + 20) * 2;
+    el.style.width = size + "px";
+    el.style.height = size + "px";
+    el.style.marginLeft = -(size / 2) + "px";
+    el.style.marginTop = -(size / 2) + "px";
+    el.style.transform = `translateY(${baseY - hMid}px) rotateX(-90deg)`;
+
+    // Lighting gradient: darker at base, brighter near oculus
+    const t = i / (segments - 1);
+    const lightness = 86 + t * 9; // 86% → 95%
+    const saturation = Math.round(6 - t * 4); // 6% → 2%
+    const colorBase = `hsl(215, ${saturation}%, ${lightness}%)`;
+    const colorInner = `hsl(215, ${Math.max(1, saturation - 1)}%, ${Math.min(97, lightness + 1.5)}%)`;
+
+    el.style.background = `radial-gradient(circle, ${colorInner} 0%, ${colorBase} 100%)`;
+
+    // Mask: cut inner hole to create ring shape
+    const maskR = Math.max(0, innerR - 3);
+    el.style.webkitMask = `radial-gradient(circle, transparent ${maskR}px, black ${maskR + 4}px)`;
+    el.style.mask = `radial-gradient(circle, transparent ${maskR}px, black ${maskR + 4}px)`;
+
+    // Subtle shadow for depth between rings
+    if (i > 0) {
+      el.style.boxShadow = "inset 0 0 60px rgba(0, 0, 0, 0.025)";
     }
 
-    const clone = frameEl.cloneNode(true);
-    const distance = horizonY - rect.bottom;
-    const squash = Math.max(0.56, 0.94 - (distance / window.innerHeight) * 0.14);
-    const reflectedBottom = horizonY + Math.max(16, distance * 0.14);
-    const opacity = Math.max(0.34, 0.7 - (distance / window.innerHeight) * 0.12);
-    const blur = 0.08 + (distance / window.innerHeight) * 0.34;
-
-    clone.classList.add("reflection-clone");
-    clone.style.width = `${rect.width}px`;
-    clone.style.height = `${rect.height}px`;
-    clone.style.left = `${rect.left + rect.width / 2}px`;
-    clone.style.top = `${reflectedBottom - rect.height}px`;
-    clone.style.opacity = opacity.toFixed(3);
-    clone.style.filter = `blur(${blur.toFixed(2)}px) saturate(0.92) brightness(0.84)`;
-    clone.style.transformOrigin = "center bottom";
-    clone.style.transform = `translate(-50%, 0) scaleY(-${squash.toFixed(3)})`;
-
-    floorReflectionLayer.appendChild(clone);
-  });
+    container.insertBefore(el, firstWall);
+  }
 }
 
 function preloadMarble() {
@@ -201,38 +221,31 @@ function waitForArtworkDecode() {
 }
 
 function nextPaint() {
-  return new Promise((resolve) => requestAnimationFrame(() => resolve()));
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => resolve());
+    setTimeout(resolve, 50);
+  });
 }
 
 async function initializeScene() {
   renderWalls();
+  buildDome();
 
   await Promise.all([preloadMarble(), waitForArtworkDecode()]);
   await nextPaint();
   await nextPaint();
-  renderFloorReflections();
   await nextPaint();
 
   document.body.classList.remove("app-loading");
 }
 
-// 1) Bring Z much further back (-500px) to see the ceiling, walls, and floor simultaneously in a wide field of view.
-// 2) Keep Y translation at 0 so the camera stays centered vertically.
-// 3) Use a very slight angle (e.g., 3deg) to show a balanced amount of floor.
-const baseTilt = 6;
-const baseRoomTransform = `translateZ(-500px) translateY(0px) rotateY(0deg) rotateX(${baseTilt}deg)`;
-room.style.transform = baseRoomTransform;
+const baseTilt = 5;
+room.style.transform = `translateZ(-500px) translateY(0px) rotateY(0deg) rotateX(${baseTilt}deg)`;
 
 if (reflectionShell) {
-  reflectionShell.style.transform = baseRoomTransform;
+  const mirrorY = 500;
+  reflectionShell.style.transform = `translateZ(-500px) rotateX(0deg) translateY(${mirrorY}px) scaleY(-0.55) translateY(${-mirrorY}px)`;
 }
 
 initializeScene();
 
-window.addEventListener("resize", () => {
-  requestAnimationFrame(renderFloorReflections);
-});
-
-window.addEventListener("pageshow", () => {
-  requestAnimationFrame(renderFloorReflections);
-});

@@ -2,7 +2,7 @@
   --radius: 1400px;
   --panel-width: 760px;
   --h: 1000px;
-  --oculus-center-y: 64%;
+  --oculus-center-y: 80%;
   --floor-horizon: 79%;
   --reflection-cut: 56vh;
 }
@@ -25,7 +25,7 @@ body.app-loading .vignette {
 }
 
 .scene {
-  perspective: 1000px;
+  perspective: 1400px;
   width: 100vw;
   height: 100vh;
   display: flex;
@@ -47,8 +47,34 @@ body.app-loading .vignette {
   will-change: transform;
 }
 
+/* ========================================= */
+/* 3D FLOOR REFLECTIONS                      */
+/* ========================================= */
 .reflection-viewport {
-  display: none;
+  position: absolute;
+  inset: 0;
+  perspective: 1400px;
+  perspective-origin: 50% 50%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 3;
+  clip-path: ellipse(82% 32% at 50% 100%);
+  -webkit-mask-image: linear-gradient(to bottom,
+      transparent 0%,
+      transparent 72%,
+      rgba(0, 0, 0, 0.06) 76%,
+      rgba(0, 0, 0, 0.20) 82%,
+      rgba(0, 0, 0, 0.50) 90%,
+      rgba(0, 0, 0, 0.78) 100%);
+  mask-image: linear-gradient(to bottom,
+      transparent 0%,
+      transparent 72%,
+      rgba(0, 0, 0, 0.06) 76%,
+      rgba(0, 0, 0, 0.20) 82%,
+      rgba(0, 0, 0, 0.50) 90%,
+      rgba(0, 0, 0, 0.78) 100%);
+  opacity: 0.58;
+  filter: blur(0.6px) brightness(0.80) saturate(0.85);
 }
 
 .room-walls {
@@ -61,7 +87,6 @@ body.app-loading .vignette {
 }
 
 .room-walls.reflection {
-  display: none;
   pointer-events: none;
 }
 
@@ -70,6 +95,21 @@ body.app-loading .vignette {
 .room-walls.reflection .frame-container img {
   backface-visibility: visible;
   -webkit-backface-visibility: visible;
+}
+
+/* Hide wall surfaces in reflection — only frames should reflect */
+.room-walls.reflection .wall-pane {
+  background: transparent !important;
+  background-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* Clean up reflected frames — remove heavy shadows */
+.room-walls.reflection .frame-container {
+  box-shadow: none !important;
+  padding: 10px;
 }
 
 .wall-pane {
@@ -81,8 +121,8 @@ body.app-loading .vignette {
   margin-top: calc(var(--h) / -2);
   margin-left: calc(var(--panel-width) / -2);
 
-  background-color: #ededed;
-  background-image: linear-gradient(to bottom, #fdfdfd 0%, #e8e9ea 100%);
+  background-color: #e4e5e6;
+  background-image: linear-gradient(to bottom, #f0f1f2 0%, #d8dadc 100%);
   border-bottom: 25px solid #d3d4d5;
   border-top: 40px solid #f2f3f4;
   box-shadow:
@@ -110,7 +150,7 @@ body.app-loading .vignette {
 
 .w-0 {
   transform: rotateY(0deg) translateZ(calc(var(--radius) * -1));
-  --lumi: 1.0;
+  --lumi: 0.96;
 }
 
 .w-1 {
@@ -130,31 +170,20 @@ body.app-loading .vignette {
 
 
 /* ========================================= */
-/* CEILING OCULUS                            */
+/* DOME CEILING                              */
 /* ========================================= */
 .ceiling {
+  display: none;
+}
+
+.dome-ring {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 4200px;
-  height: 4200px;
-  margin-left: -2100px;
-  margin-top: -2100px;
-  transform: translateY(calc(var(--h) / -2 - 8px)) rotateX(-90deg);
-  transform-style: preserve-3d;
+  border-radius: 50%;
+  pointer-events: none;
   backface-visibility: visible;
   -webkit-backface-visibility: visible;
-  pointer-events: none;
-  background: linear-gradient(to bottom, #f7f8fa 0%, #edf0f3 54%, #e0e4e8 100%);
-  -webkit-mask: radial-gradient(circle at 50% var(--oculus-center-y), transparent 0 642px, #000 646px);
-  mask: radial-gradient(circle at 50% var(--oculus-center-y), transparent 0 642px, #000 646px);
-  box-shadow:
-    inset 0 120px 170px rgba(255, 255, 255, 0.22),
-    inset 0 -90px 150px rgba(86, 95, 106, 0.08);
-}
-
-.ceiling::before {
-  display: none;
 }
 
 .ceiling-oculus {
@@ -165,7 +194,7 @@ body.app-loading .vignette {
   height: 2700px;
   margin-left: -1350px;
   margin-top: -1350px;
-  transform: translateY(calc(var(--h) / -2 - 10px)) rotateX(-90deg);
+  transform: translateY(calc(var(--h) / -2 - 302px)) rotateX(-90deg);
   transform-style: preserve-3d;
   pointer-events: none;
 }
@@ -177,8 +206,8 @@ body.app-loading .vignette {
   border-radius: 50%;
   transform: translate(-50%, -50%);
   transform-style: preserve-3d;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  backface-visibility: visible;
+  -webkit-backface-visibility: visible;
 }
 
 .oculus-rim {
@@ -361,36 +390,7 @@ body.app-loading .vignette {
 }
 
 .floor-reflections {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 4;
-  clip-path: ellipse(80% 31% at 50% 100%);
-  -webkit-mask-image: linear-gradient(to bottom,
-      transparent 0%,
-      transparent 54%,
-      rgba(0, 0, 0, 0.08) 63%,
-      rgba(0, 0, 0, 0.86) 100%);
-  mask-image: linear-gradient(to bottom,
-      transparent 0%,
-      transparent 54%,
-      rgba(0, 0, 0, 0.08) 63%,
-      rgba(0, 0, 0, 0.86) 100%);
-}
-
-.reflection-clone {
-  position: fixed;
-  margin: 0;
-  transform-origin: center bottom !important;
-  pointer-events: none;
-  transition: none;
-  backface-visibility: visible;
-  -webkit-backface-visibility: visible;
-  filter: blur(0.32px);
-}
-
-.reflection-clone:hover {
-  transform: none;
+  display: none;
 }
 
 .floor::after {
@@ -416,7 +416,7 @@ body.app-loading .vignette {
 .frame-container {
   position: absolute;
   transform: translate(-50%, -50%);
-  background: #fff;
+  background: #f8f4ec;
   padding: 30px;
   box-shadow:
     0 30px 60px rgba(0, 0, 0, 0.35),
@@ -448,6 +448,6 @@ body.app-loading .vignette {
   position: fixed;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(circle at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.6) 130%);
+  background: radial-gradient(circle at 50% 50%, transparent 40%, rgba(0, 0, 0, 0.5) 120%);
   z-index: 100;
 }

@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1600" fill="none" shape-rendering="geometricPrecision">
+  <defs>
+    <linearGradient id="rimOuter" x1="800" y1="80" x2="800" y2="1520" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.24" stop-color="#edf0f3"/>
+      <stop offset="0.54" stop-color="#c4cad1"/>
+      <stop offset="0.76" stop-color="#eef1f4"/>
+      <stop offset="1" stop-color="#afb7c0"/>
+    </linearGradient>
+    <linearGradient id="shaftWall" x1="800" y1="320" x2="800" y2="1280" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f7f8fa"/>
+      <stop offset="0.28" stop-color="#ebeef1"/>
+      <stop offset="0.62" stop-color="#d0d6dc"/>
+      <stop offset="1" stop-color="#b5bdc6"/>
+    </linearGradient>
+    <linearGradient id="shaftInner" x1="800" y1="430" x2="800" y2="1170" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.44" stop-color="#f4f6f8"/>
+      <stop offset="1" stop-color="#d7dde4"/>
+    </linearGradient>
+    <radialGradient id="glassFill" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(800 800) rotate(90) scale(132)">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.58" stop-color="#f4f8fb"/>
+      <stop offset="1" stop-color="#dde7f0"/>
+    </radialGradient>
+    <rect id="rib" x="-3" y="-290" width="6" height="250" rx="3" />
+  </defs>
+
+  <circle cx="800" cy="800" r="710" stroke="url(#rimOuter)" stroke-width="134"/>
+  <circle cx="800" cy="800" r="638" stroke="#f8f9fa" stroke-width="12"/>
+  <circle cx="800" cy="800" r="535" stroke="url(#shaftWall)" stroke-width="208"/>
+  <circle cx="800" cy="800" r="432" stroke="#f7f8fa" stroke-width="16"/>
+  <circle cx="800" cy="800" r="362" fill="url(#shaftInner)"/>
+
+  <g transform="translate(800 800)" fill="#b4bcc5">
+    <use href="#rib" transform="rotate(0)"/>
+    <use href="#rib" transform="rotate(9)"/>
+    <use href="#rib" transform="rotate(18)"/>
+    <use href="#rib" transform="rotate(27)"/>
+    <use href="#rib" transform="rotate(36)"/>
+    <use href="#rib" transform="rotate(45)"/>
+    <use href="#rib" transform="rotate(54)"/>
+    <use href="#rib" transform="rotate(63)"/>
+    <use href="#rib" transform="rotate(72)"/>
+    <use href="#rib" transform="rotate(81)"/>
+    <use href="#rib" transform="rotate(90)"/>
+    <use href="#rib" transform="rotate(99)"/>
+    <use href="#rib" transform="rotate(108)"/>
+    <use href="#rib" transform="rotate(117)"/>
+    <use href="#rib" transform="rotate(126)"/>
+    <use href="#rib" transform="rotate(135)"/>
+    <use href="#rib" transform="rotate(144)"/>
+    <use href="#rib" transform="rotate(153)"/>
+    <use href="#rib" transform="rotate(162)"/>
+    <use href="#rib" transform="rotate(171)"/>
+    <use href="#rib" transform="rotate(180)"/>
+    <use href="#rib" transform="rotate(189)"/>
+    <use href="#rib" transform="rotate(198)"/>
+    <use href="#rib" transform="rotate(207)"/>
+    <use href="#rib" transform="rotate(216)"/>
+    <use href="#rib" transform="rotate(225)"/>
+    <use href="#rib" transform="rotate(234)"/>
+    <use href="#rib" transform="rotate(243)"/>
+    <use href="#rib" transform="rotate(252)"/>
+    <use href="#rib" transform="rotate(261)"/>
+    <use href="#rib" transform="rotate(270)"/>
+    <use href="#rib" transform="rotate(279)"/>
+    <use href="#rib" transform="rotate(288)"/>
+    <use href="#rib" transform="rotate(297)"/>
+    <use href="#rib" transform="rotate(306)"/>
+    <use href="#rib" transform="rotate(315)"/>
+    <use href="#rib" transform="rotate(324)"/>
+    <use href="#rib" transform="rotate(333)"/>
+    <use href="#rib" transform="rotate(342)"/>
+    <use href="#rib" transform="rotate(351)"/>
+  </g>
+
+  <circle cx="800" cy="800" r="122" stroke="#bfc7d0" stroke-width="28"/>
+  <circle cx="800" cy="800" r="86" fill="url(#glassFill)"/>
+</svg>

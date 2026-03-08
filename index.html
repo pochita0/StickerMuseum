@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>3D Sticker Museum - Round Room</title>
+  <link rel="preload" href="./marble_tile.png?v=20260308-0526" as="image">
+  <link rel="stylesheet" href="./styles.css?v=20260308-0526">
+</head>
+
+<body class="app-loading">
+  <div class="scene">
+    <div class="room" id="room">
+      <!-- Normal Gallery Walls -->
+      <div class="room-walls" id="roomWalls">
+        <!-- Recessed ceiling oculus -->
+        <div class="ceiling"></div>
+        <div class="ceiling-oculus">
+          <span class="oculus-rim"></span>
+          <span class="oculus-well oculus-well-1"></span>
+          <span class="oculus-well oculus-well-2"></span>
+          <span class="oculus-well oculus-well-3"></span>
+          <span class="oculus-well oculus-well-4"></span>
+          <span class="skylight-ribs"></span>
+          <span class="skylight-ring"></span>
+          <span class="skylight-glass"></span>
+        </div>
+        <div class="ceiling-cornice"></div>
+
+        <!-- 7 walls -->
+        <div class="wall wall-pane w--3" id="wall_minus3"></div>
+        <div class="wall wall-pane w--2" id="wall_minus2"></div>
+        <div class="wall wall-pane w--1" id="wall_minus1"></div>
+        <div class="wall wall-pane w-0" id="wall_0"></div>
+        <div class="wall wall-pane w-1" id="wall_1"></div>
+        <div class="wall wall-pane w-2" id="wall_2"></div>
+        <div class="wall wall-pane w-3" id="wall_3"></div>
+      </div>
+      <!-- Marble Floor -->
+      <div class="floor"></div>
+    </div>
+    <div class="reflection-viewport" aria-hidden="true">
+      <div class="room room-reflection-shell" id="roomReflectionShell">
+        <div class="room-walls reflection" id="roomReflection">
+          <div class="wall wall-pane w--3" id="wall_minus3_ref"></div>
+          <div class="wall wall-pane w--2" id="wall_minus2_ref"></div>
+          <div class="wall wall-pane w--1" id="wall_minus1_ref"></div>
+          <div class="wall wall-pane w-0" id="wall_0_ref"></div>
+          <div class="wall wall-pane w-1" id="wall_1_ref"></div>
+          <div class="wall wall-pane w-2" id="wall_2_ref"></div>
+          <div class="wall wall-pane w-3" id="wall_3_ref"></div>
+        </div>
+      </div>
+    </div>
+    <div class="floor-reflections" id="floorReflections" aria-hidden="true"></div>
+  </div>
+
+  <!-- Vignette -->
+  <div class="vignette"></div>
+
+  <script src="./script.js?v=20260308-0526"></script>
+</body>
+
+</html>

@@ -179,34 +179,55 @@ function buildGeodesicCeiling() {
     }
   }
 
-  // Wispy cloud shapes for realism
+  // Overcast cloud layer — large soft shapes for realistic cloudy sky
   const clouds = [];
   const cloudData = [
-    [cx - 200, cy - 180, 280, 90, 0.18],
-    [cx + 150, cy - 100, 320, 70, 0.14],
-    [cx - 80, cy + 200, 250, 60, 0.12],
-    [cx + 280, cy + 100, 200, 80, 0.16],
-    [cx - 300, cy + 50, 180, 55, 0.10],
-    [cx + 50, cy - 280, 220, 65, 0.13],
+    [cx, cy, 500, 200, 0.25],
+    [cx - 150, cy - 180, 420, 160, 0.35],
+    [cx + 220, cy - 80, 380, 130, 0.30],
+    [cx - 280, cy + 120, 340, 110, 0.28],
+    [cx + 120, cy + 220, 400, 140, 0.33],
+    [cx - 50, cy + 50, 600, 250, 0.15],
+    [cx - 380, cy - 120, 200, 70, 0.18],
+    [cx + 380, cy - 180, 220, 80, 0.20],
+    [cx - 180, cy + 320, 250, 90, 0.16],
+    [cx + 300, cy + 280, 180, 60, 0.14],
   ];
   cloudData.forEach(([x, y, rx, ry, op]) => {
     clouds.push(`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="white" opacity="${op}"/>`);
   });
 
+  const pathData = trianglePaths.join(' ');
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}">
     <defs>
       <radialGradient id="sky">
-        <stop offset="0%" stop-color="#a8d4f0"/>
-        <stop offset="35%" stop-color="#7bbde0"/>
-        <stop offset="70%" stop-color="#5a9fc8"/>
-        <stop offset="100%" stop-color="#3a7ca8"/>
+        <stop offset="0%" stop-color="#dce6ef"/>
+        <stop offset="30%" stop-color="#c8d6e2"/>
+        <stop offset="60%" stop-color="#b0c0d0"/>
+        <stop offset="100%" stop-color="#8a9cae"/>
       </radialGradient>
+      <filter id="beam3d" x="-3%" y="-3%" width="106%" height="106%">
+        <feDropShadow dx="1.5" dy="2" stdDeviation="1.2" flood-color="#0a0e12" flood-opacity="0.45"/>
+      </filter>
     </defs>
+    <!-- Overcast sky -->
     <circle cx="${cx}" cy="${cy}" r="${maxR + 60}" fill="url(#sky)"/>
     ${clouds.join('\n    ')}
-    <path d="${trianglePaths.join(' ')}" fill="rgba(160,210,240,0.06)" stroke="#3a4248" stroke-width="4" stroke-linejoin="round"/>
-    <circle cx="${cx}" cy="${cy}" r="${maxR}" fill="none" stroke="#2a3038" stroke-width="10"/>
-    <circle cx="${cx}" cy="${cy}" r="14" fill="#2a3038"/>
+    <!-- Shadow layer — offset for depth -->
+    <path d="${pathData}" fill="none" stroke="#12181e" stroke-width="5" stroke-linejoin="round" opacity="0.25" transform="translate(2,2.5)"/>
+    <!-- Main steel beams with drop shadow filter -->
+    <path d="${pathData}" fill="rgba(200,215,230,0.04)" stroke="#2e363e" stroke-width="4.5" stroke-linejoin="round" filter="url(#beam3d)"/>
+    <!-- Highlight edge — top-left of beams -->
+    <path d="${pathData}" fill="none" stroke="rgba(210,220,230,0.4)" stroke-width="1.2" stroke-linejoin="round" transform="translate(-0.7,-0.7)"/>
+    <!-- Outer rim — 3D thick ring -->
+    <circle cx="${cx}" cy="${cy}" r="${maxR + 5}" fill="none" stroke="rgba(180,190,200,0.25)" stroke-width="3"/>
+    <circle cx="${cx}" cy="${cy}" r="${maxR}" fill="none" stroke="#1a2028" stroke-width="12"/>
+    <circle cx="${cx}" cy="${cy}" r="${maxR - 3}" fill="none" stroke="#4a5460" stroke-width="4"/>
+    <!-- Center hub — 3D bolt -->
+    <circle cx="${cx}" cy="${cy}" r="18" fill="#1a2028"/>
+    <circle cx="${cx}" cy="${cy}" r="12" fill="#3a4450"/>
+    <circle cx="${cx}" cy="${cy}" r="6" fill="#5a6470" opacity="0.8"/>
   </svg>`;
 
   el.style.backgroundImage = `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")`;

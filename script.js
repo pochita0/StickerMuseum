@@ -85,8 +85,8 @@ const LAYOUT = Object.fromEntries(
   WALL_NAMES.map((wallName, wallIndex) => [
     wallName,
     [
-      { x: 28, y: 36, w: 38, h: 34, art: wallIndex * 2, frame: wallIndex % 2 === 0 ? "wood" : "white" },
-      { x: 72, y: 36, w: 38, h: 34, art: wallIndex * 2 + 1, frame: wallIndex % 2 === 0 ? "white" : "wood" }
+      { x: 30, y: 45, w: 36, h: 32, art: wallIndex * 2, frame: wallIndex % 2 === 0 ? "wood" : "white" },
+      { x: 70, y: 45, w: 36, h: 32, art: wallIndex * 2 + 1, frame: wallIndex % 2 === 0 ? "white" : "wood" }
     ]
   ])
 );
@@ -239,7 +239,7 @@ async function initializeScene() {
   document.body.classList.remove("app-loading");
 }
 
-const baseTilt = 5;
+const baseTilt = 6;
 room.style.transform = `translateZ(-500px) translateY(0px) rotateY(0deg) rotateX(${baseTilt}deg)`;
 
 if (reflectionShell) {

@@ -123,7 +123,7 @@ function renderWalls() {
   });
 }
 
-// Generate geodesic dome SVG pattern
+// Generate geodesic dome SVG with proper triangle tessellation
 function buildGeodesicCeiling() {
   const el = document.getElementById("ceilingDome");
   if (!el) return;
@@ -131,11 +131,11 @@ function buildGeodesicCeiling() {
   const size = 2000;
   const cx = size / 2;
   const cy = size / 2;
-  const maxR = size * 0.46;
-  const rings = 12;
-  const lines = [];
+  const maxR = size * 0.47;
+  const rings = 16;
+  const trianglePaths = [];
 
-  // Generate ring points
+  // Generate concentric ring points (geodesic frequency: 6 per ring)
   const ringPts = [[{ x: cx, y: cy }]];
   for (let r = 1; r <= rings; r++) {
     const radius = (r / rings) * maxR;
@@ -144,44 +144,69 @@ function buildGeodesicCeiling() {
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2 - Math.PI / 2;
       pts.push({
-        x: cx + radius * Math.cos(angle),
-        y: cy + radius * Math.sin(angle)
+        x: +(cx + radius * Math.cos(angle)).toFixed(1),
+        y: +(cy + radius * Math.sin(angle)).toFixed(1)
       });
     }
     ringPts.push(pts);
   }
 
-  // Connect rings with triangulation lines
+  // Triangulate between adjacent rings using zipper algorithm
+  // This ensures EVERY face is a proper triangle (not quad)
   for (let r = 1; r <= rings; r++) {
     const outer = ringPts[r];
     const inner = ringPts[r - 1];
-    const ratio = outer.length / inner.length;
+    const nO = outer.length;
+    const nI = inner.length;
+    let iO = 0, iI = 0;
 
-    // Lines along ring (circumferential)
-    for (let i = 0; i < outer.length; i++) {
-      const next = (i + 1) % outer.length;
-      lines.push(`M${outer[i].x},${outer[i].y}L${outer[next].x},${outer[next].y}`);
-    }
-
-    // Lines to inner ring (radial + diagonal for triangulation)
-    for (let i = 0; i < outer.length; i++) {
-      const innerIdx = Math.min(Math.floor(i / ratio), inner.length - 1);
-      lines.push(`M${outer[i].x},${outer[i].y}L${inner[innerIdx].x},${inner[innerIdx].y}`);
+    while (iO < nO || iI < nI) {
+      if (iI >= nI || (iO < nO && iO / nO <= iI / nI)) {
+        // Triangle with outer edge
+        const o0 = outer[iO % nO];
+        const o1 = outer[(iO + 1) % nO];
+        const i0 = inner[iI % nI];
+        trianglePaths.push(`M${o0.x},${o0.y}L${o1.x},${o1.y}L${i0.x},${i0.y}Z`);
+        iO++;
+      } else {
+        // Triangle with inner edge
+        const i0 = inner[iI % nI];
+        const i1 = inner[(iI + 1) % nI];
+        const o0 = outer[iO % nO];
+        trianglePaths.push(`M${i0.x},${i0.y}L${i1.x},${i1.y}L${o0.x},${o0.y}Z`);
+        iI++;
+      }
     }
   }
 
+  // Wispy cloud shapes for realism
+  const clouds = [];
+  const cloudData = [
+    [cx - 200, cy - 180, 280, 90, 0.18],
+    [cx + 150, cy - 100, 320, 70, 0.14],
+    [cx - 80, cy + 200, 250, 60, 0.12],
+    [cx + 280, cy + 100, 200, 80, 0.16],
+    [cx - 300, cy + 50, 180, 55, 0.10],
+    [cx + 50, cy - 280, 220, 65, 0.13],
+  ];
+  cloudData.forEach(([x, y, rx, ry, op]) => {
+    clouds.push(`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="white" opacity="${op}"/>`);
+  });
+
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}">
     <defs>
-      <radialGradient id="dsky">
-        <stop offset="0%" stop-color="#d0dae6" stop-opacity="0.95"/>
-        <stop offset="40%" stop-color="#b8c8d8" stop-opacity="0.9"/>
-        <stop offset="100%" stop-color="#8a9aac" stop-opacity="0.85"/>
+      <radialGradient id="sky">
+        <stop offset="0%" stop-color="#a8d4f0"/>
+        <stop offset="35%" stop-color="#7bbde0"/>
+        <stop offset="70%" stop-color="#5a9fc8"/>
+        <stop offset="100%" stop-color="#3a7ca8"/>
       </radialGradient>
     </defs>
-    <circle cx="${cx}" cy="${cy}" r="${maxR + 80}" fill="url(#dsky)"/>
-    <path d="${lines.join('')}" stroke="#4a545e" stroke-width="2.5" fill="none" opacity="0.5"/>
-    <circle cx="${cx}" cy="${cy}" r="${maxR}" fill="none" stroke="#3a4248" stroke-width="6" opacity="0.6"/>
-    <circle cx="${cx}" cy="${cy}" r="18" fill="#5a646e" opacity="0.7"/>
+    <circle cx="${cx}" cy="${cy}" r="${maxR + 60}" fill="url(#sky)"/>
+    ${clouds.join('\n    ')}
+    <path d="${trianglePaths.join(' ')}" fill="rgba(160,210,240,0.06)" stroke="#3a4248" stroke-width="4" stroke-linejoin="round"/>
+    <circle cx="${cx}" cy="${cy}" r="${maxR}" fill="none" stroke="#2a3038" stroke-width="10"/>
+    <circle cx="${cx}" cy="${cy}" r="14" fill="#2a3038"/>
   </svg>`;
 
   el.style.backgroundImage = `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")`;

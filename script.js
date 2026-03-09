@@ -1,6 +1,6 @@
 const room = document.getElementById("room");
-const reflectionShell = document.getElementById("roomReflectionShell");
-const ASSET_VERSION = "20260308-0526";
+const ASSET_VERSION = "20260309";
+
 const WALL_ANGLES = {
   wall_minus3: -90,
   wall_minus2: -60,
@@ -70,15 +70,10 @@ const ARTWORKS = [
   { image: makeAbstractArt({ bg: "#e8ecf2", a: "#3a6ca8", b: "#d85a4a", c: "#f0b56d", variant: 2 }) }
 ];
 
-// Layout using percentages (%) to adapt perfectly across the walls
 const WALL_NAMES = [
-  "wall_minus3",
-  "wall_minus2",
-  "wall_minus1",
+  "wall_minus3", "wall_minus2", "wall_minus1",
   "wall_0",
-  "wall_1",
-  "wall_2",
-  "wall_3"
+  "wall_1", "wall_2", "wall_3"
 ];
 
 const LAYOUT = Object.fromEntries(
@@ -98,8 +93,6 @@ function buildFrame(slot, wallName) {
   container.style.height = slot.h + "%";
   container.style.top = slot.y + "%";
   container.style.left = slot.x + "%";
-  container.dataset.wallName = wallName;
-  container.dataset.wallAngle = String(WALL_ANGLES[wallName] ?? 0);
 
   if (slot.frame === 'white') {
     container.style.borderColor = '#ffffff';
@@ -125,72 +118,73 @@ function renderWalls() {
   Object.keys(LAYOUT).forEach(wallName => {
     const wallEl = document.getElementById(wallName);
     if (!wallEl) return;
-
     wallEl.querySelectorAll(".frame-container").forEach(f => f.remove());
     LAYOUT[wallName].forEach(slot => wallEl.appendChild(buildFrame(slot, wallName)));
-
-    const refEl = document.getElementById(wallName + "_ref");
-    if (refEl) {
-      refEl.querySelectorAll(".frame-container").forEach(f => f.remove());
-      LAYOUT[wallName].forEach(slot => refEl.appendChild(buildFrame(slot, wallName)));
-    }
   });
 }
 
+// Generate geodesic dome SVG pattern
+function buildGeodesicCeiling() {
+  const el = document.getElementById("ceilingDome");
+  if (!el) return;
 
-function buildDome() {
-  const container = document.getElementById("roomWalls");
-  if (!container) return;
+  const size = 2000;
+  const cx = size / 2;
+  const cy = size / 2;
+  const maxR = size * 0.46;
+  const rings = 12;
+  const lines = [];
 
-  container.querySelectorAll(".dome-ring").forEach(el => el.remove());
+  // Generate ring points
+  const ringPts = [[{ x: cx, y: cy }]];
+  for (let r = 1; r <= rings; r++) {
+    const radius = (r / rings) * maxR;
+    const count = r * 6;
+    const pts = [];
+    for (let i = 0; i < count; i++) {
+      const angle = (i / count) * Math.PI * 2 - Math.PI / 2;
+      pts.push({
+        x: cx + radius * Math.cos(angle),
+        y: cy + radius * Math.sin(angle)
+      });
+    }
+    ringPts.push(pts);
+  }
 
-  const segments = 16;
-  const domeHeight = 300;
-  const baseRadius = 1400;
-  const b = 361; // ellipse semi-minor axis (steeper dome, matches oculus at r=780)
-  const baseY = -502; // wall top (matches cornice)
-  const firstWall = container.querySelector(".wall");
+  // Connect rings with triangulation lines
+  for (let r = 1; r <= rings; r++) {
+    const outer = ringPts[r];
+    const inner = ringPts[r - 1];
+    const ratio = outer.length / inner.length;
 
-  for (let i = 0; i < segments; i++) {
-    const h0 = (i / segments) * domeHeight;
-    const h1 = ((i + 1) / segments) * domeHeight;
-    const hMid = (h0 + h1) / 2;
-
-    const outerR = baseRadius * Math.sqrt(Math.max(0, 1 - (h0 / b) ** 2));
-    const innerR = baseRadius * Math.sqrt(Math.max(0, 1 - (h1 / b) ** 2));
-
-    const el = document.createElement("div");
-    el.className = "dome-ring";
-
-    // Disc sized to outer radius + overlap
-    const size = (outerR + 20) * 2;
-    el.style.width = size + "px";
-    el.style.height = size + "px";
-    el.style.marginLeft = -(size / 2) + "px";
-    el.style.marginTop = -(size / 2) + "px";
-    el.style.transform = `translateY(${baseY - hMid}px) rotateX(-90deg)`;
-
-    // Lighting gradient: darker at base, brighter near oculus
-    const t = i / (segments - 1);
-    const lightness = 86 + t * 9; // 86% → 95%
-    const saturation = Math.round(6 - t * 4); // 6% → 2%
-    const colorBase = `hsl(215, ${saturation}%, ${lightness}%)`;
-    const colorInner = `hsl(215, ${Math.max(1, saturation - 1)}%, ${Math.min(97, lightness + 1.5)}%)`;
-
-    el.style.background = `radial-gradient(circle, ${colorInner} 0%, ${colorBase} 100%)`;
-
-    // Mask: cut inner hole to create ring shape
-    const maskR = Math.max(0, innerR - 3);
-    el.style.webkitMask = `radial-gradient(circle, transparent ${maskR}px, black ${maskR + 4}px)`;
-    el.style.mask = `radial-gradient(circle, transparent ${maskR}px, black ${maskR + 4}px)`;
-
-    // Subtle shadow for depth between rings
-    if (i > 0) {
-      el.style.boxShadow = "inset 0 0 60px rgba(0, 0, 0, 0.025)";
+    // Lines along ring (circumferential)
+    for (let i = 0; i < outer.length; i++) {
+      const next = (i + 1) % outer.length;
+      lines.push(`M${outer[i].x},${outer[i].y}L${outer[next].x},${outer[next].y}`);
     }
 
-    container.insertBefore(el, firstWall);
+    // Lines to inner ring (radial + diagonal for triangulation)
+    for (let i = 0; i < outer.length; i++) {
+      const innerIdx = Math.min(Math.floor(i / ratio), inner.length - 1);
+      lines.push(`M${outer[i].x},${outer[i].y}L${inner[innerIdx].x},${inner[innerIdx].y}`);
+    }
   }
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}">
+    <defs>
+      <radialGradient id="dsky">
+        <stop offset="0%" stop-color="#d0dae6" stop-opacity="0.95"/>
+        <stop offset="40%" stop-color="#b8c8d8" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#8a9aac" stop-opacity="0.85"/>
+      </radialGradient>
+    </defs>
+    <circle cx="${cx}" cy="${cy}" r="${maxR + 80}" fill="url(#dsky)"/>
+    <path d="${lines.join('')}" stroke="#4a545e" stroke-width="2.5" fill="none" opacity="0.5"/>
+    <circle cx="${cx}" cy="${cy}" r="${maxR}" fill="none" stroke="#3a4248" stroke-width="6" opacity="0.6"/>
+    <circle cx="${cx}" cy="${cy}" r="18" fill="#5a646e" opacity="0.7"/>
+  </svg>`;
+
+  el.style.backgroundImage = `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")`;
 }
 
 function preloadMarble() {
@@ -202,24 +196,6 @@ function preloadMarble() {
   });
 }
 
-function waitForArtworkDecode() {
-  const imgs = Array.from(document.querySelectorAll("#roomWalls .frame-container img"));
-  return Promise.all(
-    imgs.map((img) => {
-      if (typeof img.decode === "function") {
-        return img.decode().catch(() => {});
-      }
-      if (img.complete) {
-        return Promise.resolve();
-      }
-      return new Promise((resolve) => {
-        img.addEventListener("load", resolve, { once: true });
-        img.addEventListener("error", resolve, { once: true });
-      });
-    })
-  );
-}
-
 function nextPaint() {
   return new Promise((resolve) => {
     requestAnimationFrame(() => resolve());
@@ -229,23 +205,15 @@ function nextPaint() {
 
 async function initializeScene() {
   renderWalls();
-  buildDome();
+  buildGeodesicCeiling();
 
-  await Promise.all([preloadMarble(), waitForArtworkDecode()]);
-  await nextPaint();
-  await nextPaint();
+  await preloadMarble();
   await nextPaint();
 
   document.body.classList.remove("app-loading");
 }
 
-const baseTilt = 6;
-room.style.transform = `translateZ(-500px) translateY(0px) rotateY(0deg) rotateX(${baseTilt}deg)`;
-
-if (reflectionShell) {
-  const mirrorY = 500;
-  reflectionShell.style.transform = `translateZ(-500px) rotateX(0deg) translateY(${mirrorY}px) scaleY(-0.55) translateY(${-mirrorY}px)`;
-}
+// Camera setup
+room.style.transform = "translateZ(-500px) rotateX(6deg)";
 
 initializeScene();
-

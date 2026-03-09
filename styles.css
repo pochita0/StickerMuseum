@@ -2,9 +2,6 @@
   --radius: 1400px;
   --panel-width: 760px;
   --h: 1000px;
-  --oculus-center-y: 80%;
-  --floor-horizon: 79%;
-  --reflection-cut: 56vh;
 }
 
 * {
@@ -14,7 +11,7 @@
 body {
   margin: 0;
   overflow: hidden;
-  background: #dcdcdc;
+  background: #2a2a2a;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   user-select: none;
 }
@@ -47,36 +44,6 @@ body.app-loading .vignette {
   will-change: transform;
 }
 
-/* ========================================= */
-/* 3D FLOOR REFLECTIONS                      */
-/* ========================================= */
-.reflection-viewport {
-  position: absolute;
-  inset: 0;
-  perspective: 1000px;
-  perspective-origin: 50% 50%;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 3;
-  clip-path: ellipse(82% 32% at 50% 100%);
-  -webkit-mask-image: linear-gradient(to bottom,
-      transparent 0%,
-      transparent 72%,
-      rgba(0, 0, 0, 0.06) 76%,
-      rgba(0, 0, 0, 0.20) 82%,
-      rgba(0, 0, 0, 0.50) 90%,
-      rgba(0, 0, 0, 0.78) 100%);
-  mask-image: linear-gradient(to bottom,
-      transparent 0%,
-      transparent 72%,
-      rgba(0, 0, 0, 0.06) 76%,
-      rgba(0, 0, 0, 0.20) 82%,
-      rgba(0, 0, 0, 0.50) 90%,
-      rgba(0, 0, 0, 0.78) 100%);
-  opacity: 0.58;
-  filter: blur(0.6px) brightness(0.80) saturate(0.85);
-}
-
 .room-walls {
   width: 100vw;
   height: 100vh;
@@ -86,238 +53,29 @@ body.app-loading .vignette {
   transform-style: preserve-3d;
 }
 
-.room-walls.reflection {
-  pointer-events: none;
-}
 
-.room-walls.reflection .wall-pane,
-.room-walls.reflection .frame-container,
-.room-walls.reflection .frame-container img {
-  backface-visibility: visible;
-  -webkit-backface-visibility: visible;
-}
-
-/* Hide wall surfaces in reflection — only frames should reflect */
-.room-walls.reflection .wall-pane {
-  background: transparent !important;
-  background-image: none !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
-  filter: none !important;
-}
-
-/* Clean up reflected frames — remove heavy shadows */
-.room-walls.reflection .frame-container {
-  box-shadow: none !important;
-  padding: 10px;
-}
-
-.wall-pane {
+/* ========================================= */
+/* GEODESIC DOME CEILING                     */
+/* ========================================= */
+.ceiling-dome {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: var(--panel-width);
-  height: var(--h);
-  margin-top: calc(var(--h) / -2);
-  margin-left: calc(var(--panel-width) / -2);
-
-  background-color: #e4e5e6;
-  background-image: linear-gradient(to bottom, #f0f1f2 0%, #d8dadc 100%);
-  border-bottom: 25px solid #d3d4d5;
-  border-top: 40px solid #f2f3f4;
-  box-shadow:
-    inset 15px 0 30px rgba(0, 0, 0, 0.03),
-    inset -15px 0 30px rgba(0, 0, 0, 0.03);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  filter: brightness(var(--lumi));
-}
-
-.w--3 {
-  transform: rotateY(-90deg) translateZ(calc(var(--radius) * -1));
-  --lumi: 0.70;
-}
-
-.w--2 {
-  transform: rotateY(-60deg) translateZ(calc(var(--radius) * -1));
-  --lumi: 0.82;
-}
-
-.w--1 {
-  transform: rotateY(-30deg) translateZ(calc(var(--radius) * -1));
-  --lumi: 0.94;
-}
-
-.w-0 {
-  transform: rotateY(0deg) translateZ(calc(var(--radius) * -1));
-  --lumi: 0.96;
-}
-
-.w-1 {
-  transform: rotateY(30deg) translateZ(calc(var(--radius) * -1));
-  --lumi: 0.94;
-}
-
-.w-2 {
-  transform: rotateY(60deg) translateZ(calc(var(--radius) * -1));
-  --lumi: 0.82;
-}
-
-.w-3 {
-  transform: rotateY(90deg) translateZ(calc(var(--radius) * -1));
-  --lumi: 0.70;
-}
-
-
-/* ========================================= */
-/* DOME CEILING                              */
-/* ========================================= */
-.ceiling {
-  display: none;
-}
-
-.dome-ring {
-  position: absolute;
-  top: 50%;
-  left: 50%;
+  width: 3200px;
+  height: 3200px;
+  margin-left: -1600px;
+  margin-top: -1600px;
+  transform: translateY(calc(var(--h) / -2 - 2px)) rotateX(-90deg);
   border-radius: 50%;
   pointer-events: none;
   backface-visibility: visible;
   -webkit-backface-visibility: visible;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-.ceiling-oculus {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 2700px;
-  height: 2700px;
-  margin-left: -1350px;
-  margin-top: -1350px;
-  transform: translateY(calc(var(--h) / -2 - 302px)) rotateX(-90deg);
-  transform-style: preserve-3d;
-  pointer-events: none;
-}
-
-.ceiling-oculus > span {
-  position: absolute;
-  left: 50%;
-  top: var(--oculus-center-y);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transform-style: preserve-3d;
-  backface-visibility: visible;
-  -webkit-backface-visibility: visible;
-}
-
-.oculus-rim {
-  width: 1560px;
-  height: 1560px;
-  transform: translate(-50%, -50%) translateZ(-34px);
-  border: 66px solid #f7f9fb;
-  border-top-color: #ffffff;
-  border-left-color: #f0f4f7;
-  border-right-color: #d3dbe3;
-  border-bottom-color: #bbc5ce;
-  box-shadow:
-    0 0 0 7px rgba(198, 205, 212, 0.86),
-    inset 0 14px 22px rgba(255, 255, 255, 0.5),
-    inset 0 -28px 30px rgba(113, 124, 135, 0.18);
-}
-
-.oculus-well-1 {
-  width: 1320px;
-  height: 1320px;
-  transform: translate(-50%, -50%) translateZ(-156px);
-  border: 124px solid #dde4ea;
-  border-top-color: #fbfcfd;
-  border-left-color: #edf2f5;
-  border-right-color: #c8d0d8;
-  border-bottom-color: #adb7c0;
-  box-shadow:
-    inset 0 14px 16px rgba(255, 255, 255, 0.34),
-    inset 0 -18px 20px rgba(97, 108, 119, 0.14);
-}
-
-.oculus-well-2 {
-  width: 1070px;
-  height: 1070px;
-  transform: translate(-50%, -50%) translateZ(-308px);
-  border: 100px solid #edf2f5;
-  border-top-color: #ffffff;
-  border-left-color: #f5f7f9;
-  border-right-color: #d1dae2;
-  border-bottom-color: #bcc6cf;
-  box-shadow:
-    inset 0 12px 15px rgba(255, 255, 255, 0.3),
-    inset 0 -18px 22px rgba(96, 107, 118, 0.12);
-}
-
-.oculus-well-3 {
-  width: 810px;
-  height: 810px;
-  transform: translate(-50%, -50%) translateZ(-484px);
-  border: 84px solid #f2f5f7;
-  border-top-color: #ffffff;
-  border-left-color: #f8fafb;
-  border-right-color: #d5dde4;
-  border-bottom-color: #c0c9d1;
-  box-shadow:
-    inset 0 10px 14px rgba(255, 255, 255, 0.32),
-    inset 0 -22px 26px rgba(120, 131, 141, 0.14);
-}
-
-.oculus-well-4 {
-  width: 540px;
-  height: 540px;
-  transform: translate(-50%, -50%) translateZ(-676px);
-  border: 58px solid #f6f8fa;
-  border-top-color: #ffffff;
-  border-left-color: #f5f8fa;
-  border-right-color: #d4dde5;
-  border-bottom-color: #bec8d0;
-  box-shadow:
-    inset 0 8px 12px rgba(255, 255, 255, 0.26),
-    inset 0 -18px 22px rgba(118, 128, 139, 0.14);
-}
-
-.skylight-ribs {
-  width: 408px;
-  height: 408px;
-  transform: translate(-50%, -50%) translateZ(-768px);
-  background: repeating-conic-gradient(from -4deg, #aeb7bf 0 1.2deg, transparent 1.2deg 8deg);
-  -webkit-mask: radial-gradient(circle, transparent 0 88px, #000 90px 190px, transparent 192px);
-  mask: radial-gradient(circle, transparent 0 88px, #000 90px 190px, transparent 192px);
-  opacity: 0.98;
-}
-
-.skylight-ring {
-  width: 208px;
-  height: 208px;
-  transform: translate(-50%, -50%) translateZ(-812px);
-  border: 18px solid #c2cad1;
-  border-top-color: #ffffff;
-  border-left-color: #eef3f6;
-  border-right-color: #b3bcc4;
-  border-bottom-color: #a2acb4;
-  background: radial-gradient(circle at 50% 48%, rgba(255, 255, 255, 0.92) 0%, rgba(239, 244, 248, 0.88) 100%);
-  box-shadow:
-    inset 0 -10px 16px rgba(116, 124, 134, 0.12),
-    0 0 0 4px rgba(238, 243, 246, 0.8);
-}
-
-.skylight-glass {
-  width: 152px;
-  height: 152px;
-  transform: translate(-50%, -50%) translateZ(-838px);
-  background: radial-gradient(circle at 34% 28%, #ffffff 0%, #f6fbff 30%, #e0e8ef 100%);
-  border: 8px solid rgba(247, 250, 252, 0.94);
-  box-shadow:
-    inset 0 0 18px rgba(255, 255, 255, 0.76),
-    inset 0 -10px 18px rgba(174, 184, 194, 0.16);
-}
-
-/* Cornice ring — smoothly connects walls to ceiling */
+/* Cornice ring — connects walls to ceiling */
 .ceiling-cornice {
   position: absolute;
   top: 50%;
@@ -346,6 +104,71 @@ body.app-loading .vignette {
 
 
 /* ========================================= */
+/* WALLS WITH TEXTURE                        */
+/* ========================================= */
+.wall-pane {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--panel-width);
+  height: var(--h);
+  margin-top: calc(var(--h) / -2);
+  margin-left: calc(var(--panel-width) / -2);
+
+  background-color: #e8e8e6;
+  background-image:
+    /* Fine plaster/stucco grain texture */
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' seed='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='linear' slope='0.06'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E"),
+    linear-gradient(to bottom, #f0eeec 0%, #e2e0de 50%, #d6d4d2 100%);
+  background-size: 200px 200px, 100% 100%;
+
+  border-bottom: 25px solid #cac8c6;
+  border-top: 40px solid #eae8e6;
+  box-shadow:
+    inset 15px 0 30px rgba(0, 0, 0, 0.03),
+    inset -15px 0 30px rgba(0, 0, 0, 0.03);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  filter: brightness(var(--lumi));
+}
+
+.w--3 {
+  transform: rotateY(-90deg) translateZ(calc(var(--radius) * -1));
+  --lumi: 0.70;
+}
+
+.w--2 {
+  transform: rotateY(-60deg) translateZ(calc(var(--radius) * -1));
+  --lumi: 0.82;
+}
+
+.w--1 {
+  transform: rotateY(-30deg) translateZ(calc(var(--radius) * -1));
+  --lumi: 0.94;
+}
+
+.w-0 {
+  transform: rotateY(0deg) translateZ(calc(var(--radius) * -1));
+  --lumi: 0.98;
+}
+
+.w-1 {
+  transform: rotateY(30deg) translateZ(calc(var(--radius) * -1));
+  --lumi: 0.94;
+}
+
+.w-2 {
+  transform: rotateY(60deg) translateZ(calc(var(--radius) * -1));
+  --lumi: 0.82;
+}
+
+.w-3 {
+  transform: rotateY(90deg) translateZ(calc(var(--radius) * -1));
+  --lumi: 0.70;
+}
+
+
+/* ========================================= */
 /* MARBLE FLOOR                              */
 /* ========================================= */
 .floor {
@@ -361,19 +184,7 @@ body.app-loading .vignette {
   transform: translateY(calc(var(--h) / 2 - 18px)) rotateX(-90deg);
   z-index: 1;
   overflow: hidden;
-  background:
-    linear-gradient(to bottom,
-      rgba(108, 114, 122, 0.12) 0%,
-      rgba(148, 154, 162, 0.06) 10%,
-      rgba(196, 200, 204, 0.02) 24%,
-      rgba(222, 225, 228, 0.01) 100%),
-    radial-gradient(circle at 50% 120%,
-      rgba(255, 255, 255, 0.03) 0%,
-      rgba(255, 255, 255, 0.01) 42%,
-      rgba(0, 0, 0, 0.04) 100%);
-  box-shadow:
-    inset 0 20px 28px rgba(255, 255, 255, 0.03),
-    inset 0 -36px 60px rgba(0, 0, 0, 0.04);
+  background: #c8c4c0;
 }
 
 .floor::before {
@@ -381,16 +192,11 @@ body.app-loading .vignette {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background-image: url('./marble_tile.png?v=20260308-0526');
-  background-size: 540px 540px;
+  background-image: url('./marble_tile.png?v=20260309');
+  background-size: 480px 480px;
   background-repeat: repeat;
-  opacity: 0.32;
-  mix-blend-mode: multiply;
+  opacity: 0.85;
   pointer-events: none;
-}
-
-.floor-reflections {
-  display: none;
 }
 
 .floor::after {
@@ -399,13 +205,13 @@ body.app-loading .vignette {
   inset: 0;
   border-radius: 50%;
   background:
-    linear-gradient(to bottom,
-      rgba(255, 255, 255, 0.07) 0%,
-      rgba(255, 255, 255, 0.02) 12%,
-      transparent 24%),
-    radial-gradient(ellipse at center,
-      rgba(255, 255, 255, 0.03) 0%,
-      transparent 62%);
+    radial-gradient(ellipse at 50% 30%,
+      rgba(255, 255, 255, 0.15) 0%,
+      transparent 50%),
+    radial-gradient(circle at center,
+      transparent 0%,
+      transparent 50%,
+      rgba(0, 0, 0, 0.12) 100%);
   pointer-events: none;
 }
 

@@ -10,6 +10,7 @@ const sceneImage = document.getElementById("galleryScene");
 const lightLayer = document.getElementById("galleryLightLayer");
 const hitLayer = document.getElementById("galleryHitLayer");
 const darknessSlider = document.getElementById("galleryDarkness");
+const DARKNESS_STORAGE_KEY = "sticker-museum-gallery-darkness";
 
 const FRAME_INNER = {
   left: Number.parseFloat(FRAME_WINDOW.left),
@@ -54,9 +55,48 @@ sceneImage.src = GALLERY_WALL_SRC;
 sceneImage.loading = "eager";
 sceneImage.decoding = "sync";
 
+function clampDarkness(level) {
+  return Math.max(0, Math.min(1, level));
+}
+
 function syncDarkness(level) {
-  const normalized = Math.max(0, Math.min(1, level));
+  const normalized = clampDarkness(level);
   document.documentElement.style.setProperty("--gallery-darkness-level", normalized.toFixed(3));
+  return normalized;
+}
+
+function restoreDarknessLevel() {
+  try {
+    const storedLevel = window.localStorage.getItem(DARKNESS_STORAGE_KEY);
+    const parsedLevel = Number.parseFloat(storedLevel ?? "");
+    if (Number.isFinite(parsedLevel)) {
+      return clampDarkness(parsedLevel);
+    }
+  } catch {
+    // Ignore storage access failures and fall back to the slider's default value.
+  }
+
+  return clampDarkness(Number(darknessSlider?.value ?? 0) / 100);
+}
+
+function saveDarknessLevel(level) {
+  try {
+    window.localStorage.setItem(DARKNESS_STORAGE_KEY, String(clampDarkness(level)));
+  } catch {
+    // Ignore storage access failures so the slider still works.
+  }
+}
+
+function applyDarkness(level, { persist = true } = {}) {
+  const normalized = syncDarkness(level);
+
+  if (darknessSlider) {
+    darknessSlider.value = String(Math.round(normalized * 100));
+  }
+
+  if (persist) {
+    saveDarknessLevel(normalized);
+  }
 }
 
 function getGalleryPreview(pack) {
@@ -175,7 +215,8 @@ renderGallery();
 if (darknessSlider) {
   darknessSlider.addEventListener("input", (event) => {
     const level = Number(event.currentTarget.value) / 100;
-    syncDarkness(level);
+    applyDarkness(level);
   });
-  syncDarkness(Number(darknessSlider.value) / 100);
 }
+
+applyDarkness(restoreDarknessLevel(), { persist: false });

@@ -1,0 +1,13 @@
+
+import asyncio
+from playwright.async_api import async_playwright
+
+async def main():
+    async with async_playwright() as p:
+        browser = await p.chromium.launch()
+        page = await browser.new_page(viewport={'width': 2048, 'height': 880, 'device_scale_factor': 1})
+        await page.goto('http://127.0.0.1:5500/?v=20260315ad', wait_until='networkidle')
+        await page.screenshot(path='.codex-artifacts/gallery-perspective-ad.png')
+        await browser.close()
+
+asyncio.run(main())

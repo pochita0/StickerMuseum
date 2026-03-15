@@ -13,6 +13,37 @@ python3 -m http.server 5500
 
 브라우저에서 `http://localhost:5500` 접속
 
+## 텔레그램 스티커팩 저장
+
+먼저 텔레그램에서 `@BotFather`로 봇을 만들고 토큰을 발급받습니다.
+
+그 다음 프로젝트 루트에서:
+
+```bash
+export TELEGRAM_BOT_TOKEN="YOUR_BOT_TOKEN"
+python3 scripts/download_telegram_pack.py "https://t.me/addstickers/Nethery_aeri005_by_fStikBot"
+```
+
+기본 저장 위치:
+
+```text
+packs/
+  Nethery_aeri005_by_fStikBot/
+    cover.webp
+    manifest.json
+    stickers/
+    thumbs/
+```
+
+출력 폴더를 바꾸고 싶으면:
+
+```bash
+python3 scripts/download_telegram_pack.py "https://t.me/addstickers/Nethery_aeri005_by_fStikBot" --output ./assets/packs
+```
+
+`manifest.json`에는 팩 제목, 커버, 스티커 목록, 미리보기 경로가 들어갑니다.
+이 값을 나중에 `script.js`의 전시 데이터로 연결하면 됩니다.
+
 ## 커스터마이징
 
 `script.js`의 `STICKERS` 배열을 수정하면 됩니다.

@@ -7,37 +7,54 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>3D Sticker Museum - Round Room</title>
-  <link rel="preload" href="./marble_tile.png?v=20260309" as="image">
-  <link rel="stylesheet" href="./styles.css?v=20260309">
+  <title>Sticker Museum</title>
+  <link rel="preload" href="./gallery_scene_wall_refined4.png?v=20260316b" as="image">
+  <link rel="stylesheet" href="./gallery.css?v=20260316b">
 </head>
 
-<body class="app-loading">
-  <div class="scene">
-    <div class="room" id="room">
-      <div class="room-walls" id="roomWalls">
-        <!-- Geodesic dome ceiling (built by JS) -->
-        <div class="ceiling-dome" id="ceilingDome"></div>
-        <div class="ceiling-cornice"></div>
-
-        <!-- 7 walls -->
-        <div class="wall wall-pane w--3" id="wall_minus3"></div>
-        <div class="wall wall-pane w--2" id="wall_minus2"></div>
-        <div class="wall wall-pane w--1" id="wall_minus1"></div>
-        <div class="wall wall-pane w-0" id="wall_0"></div>
-        <div class="wall wall-pane w-1" id="wall_1"></div>
-        <div class="wall wall-pane w-2" id="wall_2"></div>
-        <div class="wall wall-pane w-3" id="wall_3"></div>
-      </div>
-      <!-- Marble Floor -->
-      <div class="floor"></div>
-    </div>
+<body class="gallery-page">
+  <div class="gallery-backdrop" aria-hidden="true">
+    <img src="./gallery_scene_wall_refined4.png?v=20260316b" alt="">
   </div>
 
-  <!-- Vignette -->
-  <div class="vignette"></div>
+  <main class="gallery-stage-wrap">
+    <h1 class="sr-only">Sticker Museum Gallery</h1>
+    <section class="gallery-stage" id="galleryStage" aria-label="스티커 갤러리">
+      <div class="gallery-scene-layer" id="gallerySceneLayer">
+        <img class="gallery-scene" id="galleryScene" alt="액자가 전시된 스티커 뮤지엄 전경" draggable="false">
+        <div class="gallery-light-layer" id="galleryLightLayer" aria-hidden="true"></div>
+        <div class="gallery-hit-layer" id="galleryHitLayer" aria-label="전시 액자 목록"></div>
+      </div>
+    </section>
+  </main>
 
-  <script src="./script.js?v=20260309"></script>
+  <aside class="gallery-controls" aria-label="갤러리 조명 조절">
+    <label class="gallery-control-panel" for="galleryDarkness">
+      <span class="gallery-control-panel__icon" aria-hidden="true">Light</span>
+      <input
+        class="gallery-control-panel__slider"
+        id="galleryDarkness"
+        type="range"
+        min="0"
+        max="100"
+        value="0"
+        step="1"
+        aria-label="배경 어둡기"
+      >
+    </label>
+    <a
+      class="gallery-contact-button"
+      href="https://t.me/StickerOrnn"
+      target="_blank"
+      rel="noreferrer noopener"
+      aria-label="문의하기"
+      title="문의하기"
+    >
+      문의
+    </a>
+  </aside>
+
+  <script type="module" src="./gallery.js?v=20260316b"></script>
 </body>
 
 </html>

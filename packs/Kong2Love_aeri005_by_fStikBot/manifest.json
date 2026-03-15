@@ -1,0 +1,170 @@
+{
+  "id": "Kong2Love_aeri005_by_fStikBot",
+  "name": "Kong2Love_aeri005_by_fStikBot",
+  "title": "콩이러브콘",
+  "source_url": "https://t.me/addstickers/Kong2Love_aeri005_by_fStikBot",
+  "channel_url": "https://t.me/Sarangbang_Crypto",
+  "cover": "cover.webp",
+  "stickers": [
+    {
+      "id": "AgADAiAAArsT-VU",
+      "title": "Sticker 01",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/001.webm",
+      "preview": "thumbs/001.webp",
+      "width": 512,
+      "height": 484
+    },
+    {
+      "id": "AgADEx0AAuigAVY",
+      "title": "Sticker 02",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/002.webm",
+      "preview": "thumbs/002.webp",
+      "width": 457,
+      "height": 512
+    },
+    {
+      "id": "AgADdRgAAke6AAFW",
+      "title": "Sticker 03",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/003.webm",
+      "preview": "thumbs/003.webp",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "AgADUx0AAkjFAAFW",
+      "title": "Sticker 04",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/004.webm",
+      "preview": "thumbs/004.webp",
+      "width": 315,
+      "height": 512
+    },
+    {
+      "id": "AgADlhoAAoN4AVY",
+      "title": "Sticker 05",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/005.webm",
+      "preview": "thumbs/005.webp",
+      "width": 315,
+      "height": 512
+    },
+    {
+      "id": "AgADsxkAAqXkAVY",
+      "title": "Sticker 06",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/006.webm",
+      "preview": "thumbs/006.webp",
+      "width": 512,
+      "height": 480
+    },
+    {
+      "id": "AgADMhoAAnO1AAFW",
+      "title": "Sticker 07",
+      "emoji": "🌟",
+      "kind": "static",
+      "file": "stickers/007.webp",
+      "preview": "thumbs/007.webp",
+      "width": 512,
+      "height": 335
+    },
+    {
+      "id": "AgADZCQAAi0_AAFW",
+      "title": "Sticker 08",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/008.webm",
+      "preview": "thumbs/008.webp",
+      "width": 503,
+      "height": 512
+    },
+    {
+      "id": "AgADNRoAAqM_AAFW",
+      "title": "Sticker 09",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/009.webm",
+      "preview": "thumbs/009.webp",
+      "width": 506,
+      "height": 512
+    },
+    {
+      "id": "AgADphoAAoqvAVY",
+      "title": "Sticker 10",
+      "emoji": "🌟",
+      "kind": "static",
+      "file": "stickers/010.webp",
+      "preview": "thumbs/010.webp",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "AgAD_xsAAo-EAAFW",
+      "title": "Sticker 11",
+      "emoji": "🌟",
+      "kind": "static",
+      "file": "stickers/011.webp",
+      "preview": "thumbs/011.webp",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "AgADdyMAAirDAAFW",
+      "title": "Sticker 12",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/012.webm",
+      "preview": "thumbs/012.webp",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "AgAD_iIAAq6IGFY",
+      "title": "Sticker 13",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/013.webm",
+      "preview": "thumbs/013.webp",
+      "width": 512,
+      "height": 502
+    },
+    {
+      "id": "AgADIxoAAoVgUFY",
+      "title": "Sticker 14",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/014.webm",
+      "preview": "thumbs/014.webp",
+      "width": 512,
+      "height": 350
+    },
+    {
+      "id": "AgAD4B0AAqbySVY",
+      "title": "Sticker 15",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/015.webm",
+      "preview": "thumbs/015.webp",
+      "width": 512,
+      "height": 293
+    },
+    {
+      "id": "AgADIiYAAu1ESFY",
+      "title": "Sticker 16",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/016.webm",
+      "preview": "thumbs/016.webp",
+      "width": 481,
+      "height": 512
+    }
+  ]
+}

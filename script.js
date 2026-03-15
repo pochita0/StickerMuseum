@@ -1,15 +1,16 @@
 const room = document.getElementById("room");
-const ASSET_VERSION = "20260309";
-
-const WALL_ANGLES = {
-  wall_minus3: -90,
-  wall_minus2: -60,
-  wall_minus1: -30,
-  wall_0: 0,
-  wall_1: 30,
-  wall_2: 60,
-  wall_3: 90
-};
+const detailViewer = document.getElementById("detailViewer");
+const detailViewerBackdrop = document.getElementById("detailViewerBackdrop");
+const detailViewerClose = document.getElementById("detailViewerClose");
+const detailViewerTitle = document.getElementById("detailViewerTitle");
+const detailViewerStatus = document.getElementById("detailViewerStatus");
+const detailViewerCopy = document.getElementById("detailViewerCopy");
+const detailStickerGrid = document.getElementById("detailStickerGrid");
+const detailFrameArt = document.getElementById("detailFrameArt");
+const detailFrameVideo = document.getElementById("detailFrameVideo");
+const detailFrameGold = document.getElementById("detailFrameGold");
+const frameHoverIndicator = document.getElementById("frameHoverIndicator");
+const ASSET_VERSION = "20260312s";
 
 const makeAbstractArt = ({ bg, a, b, c, variant }) => {
   let shapes = "";
@@ -71,55 +72,439 @@ const ARTWORKS = [
 ];
 
 const WALL_NAMES = [
-  "wall_minus3", "wall_minus2", "wall_minus1",
+  "wall_minus2", "wall_minus1",
   "wall_0",
-  "wall_1", "wall_2", "wall_3"
+  "wall_1", "wall_2"
 ];
 
-const LAYOUT = Object.fromEntries(
-  WALL_NAMES.map((wallName, wallIndex) => [
+const SLOT_LAYOUT = Object.fromEntries(
+  WALL_NAMES.map((wallName) => [
     wallName,
     [
-      { x: 30, y: 45, w: 36, h: 32, art: wallIndex * 2, frame: wallIndex % 2 === 0 ? "wood" : "white" },
-      { x: 70, y: 45, w: 36, h: 32, art: wallIndex * 2 + 1, frame: wallIndex % 2 === 0 ? "white" : "wood" }
+      { x: 28, y: 49, w: 40 },
+      { x: 72, y: 49, w: 40 }
     ]
   ])
 );
 
-function buildFrame(slot, wallName) {
+// Place packs from the center wall outward so real packs stay visually balanced.
+const DISPLAY_SLOT_ORDER = [
+  { wallName: "wall_0", slotIndex: 0 },
+  { wallName: "wall_0", slotIndex: 1 },
+  { wallName: "wall_minus1", slotIndex: 1 },
+  { wallName: "wall_1", slotIndex: 0 },
+  { wallName: "wall_minus1", slotIndex: 0 },
+  { wallName: "wall_1", slotIndex: 1 },
+  { wallName: "wall_minus2", slotIndex: 0 },
+  { wallName: "wall_2", slotIndex: 1 },
+  { wallName: "wall_minus2", slotIndex: 1 },
+  { wallName: "wall_2", slotIndex: 0 }
+];
+
+const PACK_COUNT = DISPLAY_SLOT_ORDER.length;
+
+// Replace this array with real Telegram sticker pack data later.
+const DEFAULT_STICKER_PACKS = Array.from({ length: PACK_COUNT }, (_, packIndex) => {
+  const start = (packIndex * 3) % ARTWORKS.length;
+  const stickers = Array.from({ length: 8 }, (_, stickerIndex) => ({
+    id: `pack-${packIndex + 1}-sticker-${stickerIndex + 1}`,
+    title: `Sticker ${String(stickerIndex + 1).padStart(2, "0")}`,
+    kind: "static",
+    file: ARTWORKS[(start + stickerIndex) % ARTWORKS.length].image,
+    preview: ARTWORKS[(start + stickerIndex) % ARTWORKS.length].image
+  }));
+
+  return {
+    id: `pack-${packIndex + 1}`,
+    title: `Sticker Pack ${String(packIndex + 1).padStart(2, "0")}`,
+    sourceUrl: "",
+    cover: stickers[0].preview,
+    stickers
+  };
+});
+
+let stickerPacks = DEFAULT_STICKER_PACKS.slice();
+
+const LAYOUT = (() => {
+  const assignments = Object.fromEntries(
+    WALL_NAMES.map((wallName) => [
+      wallName,
+      SLOT_LAYOUT[wallName].map((slot) => ({ ...slot, pack: -1 }))
+    ])
+  );
+
+  DISPLAY_SLOT_ORDER.forEach(({ wallName, slotIndex }, packIndex) => {
+    assignments[wallName][slotIndex] = {
+      ...SLOT_LAYOUT[wallName][slotIndex],
+      pack: packIndex
+    };
+  });
+
+  return assignments;
+})();
+
+// User frame image, reprocessed into a square-ready frame with transparent outer background.
+const GOLD_FRAME_SRC = `./gold_frame_user_square_opaque.png?v=${ASSET_VERSION}`;
+detailFrameGold.src = GOLD_FRAME_SRC;
+
+let activePackIndex = -1;
+let activeStickerIndex = 0;
+let hoveredFrameEl = null;
+
+function applyWallLighting(wallEl, slots) {
+  if (!slots.length) return;
+
+  const bounds = slots.reduce((acc, slot) => {
+    const half = slot.w / 2;
+    acc.left = Math.min(acc.left, slot.x - half);
+    acc.right = Math.max(acc.right, slot.x + half);
+    acc.top = Math.min(acc.top, slot.y - half);
+    acc.bottom = Math.max(acc.bottom, slot.y + half);
+    return acc;
+  }, { left: Infinity, right: -Infinity, top: Infinity, bottom: -Infinity });
+
+  wallEl.style.setProperty("--group-center-x", `${(bounds.left + bounds.right) / 2}%`);
+  wallEl.style.setProperty("--group-center-y", `${((bounds.top + bounds.bottom) / 2) - 2}%`);
+  wallEl.style.setProperty("--group-span", `${bounds.right - bounds.left}%`);
+}
+
+function buildFrame(slot) {
+  const pack = stickerPacks[slot.pack % stickerPacks.length];
   const container = document.createElement("div");
   container.className = "frame-container";
   container.style.width = slot.w + "%";
-  container.style.height = slot.h + "%";
   container.style.top = slot.y + "%";
   container.style.left = slot.x + "%";
+  container.tabIndex = 0;
+  container.setAttribute("role", "button");
+  container.setAttribute("aria-label", `${pack.title} 열기`);
+  container.dataset.packIndex = String(slot.pack);
 
-  if (slot.frame === 'white') {
-    container.style.borderColor = '#ffffff';
-    container.style.borderLeftColor = '#f5f5f5';
-    container.style.borderTopColor = '#f5f5f5';
-    container.style.borderRightColor = '#e0e0e0';
-    container.style.borderBottomColor = '#e0e0e0';
-    container.style.boxShadow = '0 20px 40px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(0,0,0,0.1)';
-  }
+  // Art image aligned to the inner opening of the frame.
+  const artWindow = document.createElement("div");
+  artWindow.className = "frame-art-window";
 
-  const artObj = ARTWORKS[slot.art % ARTWORKS.length];
   const img = document.createElement("img");
-  img.src = artObj.image;
-  img.alt = "Abstract Art";
+  img.src = pack.cover;
+  img.alt = pack.title;
+  img.className = "frame-art";
   img.loading = "eager";
   img.decoding = "sync";
+  artWindow.appendChild(img);
+  container.appendChild(artWindow);
 
-  container.appendChild(img);
+  // Real gold frame overlay
+  const frameImg = document.createElement("img");
+  frameImg.src = GOLD_FRAME_SRC;
+  frameImg.alt = "";
+  frameImg.className = "gold-frame";
+  frameImg.loading = "eager";
+  frameImg.decoding = "sync";
+  container.appendChild(frameImg);
+
+  container.addEventListener("click", () => openPack(slot.pack));
+  container.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openPack(slot.pack);
+    }
+  });
+
   return container;
 }
 
+function updateDetailFrame() {
+  const pack = stickerPacks[activePackIndex];
+  if (!pack) return;
+  const sticker = pack.stickers[activeStickerIndex];
+  const isVideo = sticker.kind === "video";
+  detailFrameArt.hidden = isVideo;
+  detailFrameVideo.hidden = !isVideo;
+
+  if (isVideo) {
+    detailFrameVideo.src = sticker.file;
+    detailFrameVideo.poster = sticker.preview || pack.cover;
+    detailFrameVideo.setAttribute("aria-label", `${pack.title} - ${sticker.title}`);
+    detailFrameVideo.play().catch(() => {});
+  } else {
+    detailFrameVideo.pause();
+    detailFrameVideo.removeAttribute("src");
+    detailFrameVideo.load();
+    detailFrameArt.src = sticker.file || sticker.preview;
+    detailFrameArt.alt = `${pack.title} - ${sticker.title}`;
+  }
+
+  detailViewerStatus.textContent = `${activeStickerIndex + 1} / ${pack.stickers.length}`;
+}
+
+function renderStickerGrid(pack) {
+  const fragment = document.createDocumentFragment();
+
+  pack.stickers.forEach((sticker, stickerIndex) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "sticker-thumb";
+    if (stickerIndex === activeStickerIndex) {
+      button.classList.add("is-active");
+    }
+    button.setAttribute("aria-pressed", stickerIndex === activeStickerIndex ? "true" : "false");
+    button.setAttribute("aria-label", `${sticker.title} 전시하기`);
+
+    const preview = document.createElement("span");
+    preview.className = "sticker-thumb__preview";
+
+    const image = document.createElement("img");
+    image.src = sticker.preview || sticker.file;
+    image.alt = "";
+    image.loading = "eager";
+    image.decoding = "sync";
+    preview.appendChild(image);
+    button.appendChild(preview);
+    button.addEventListener("click", () => {
+      activeStickerIndex = stickerIndex;
+      updateDetailFrame();
+      renderStickerGrid(pack);
+    });
+
+    fragment.appendChild(button);
+  });
+
+  detailStickerGrid.replaceChildren(fragment);
+}
+
+function openPack(packIndex) {
+  const pack = stickerPacks[packIndex];
+  if (!pack) return;
+
+  activePackIndex = packIndex;
+  activeStickerIndex = 0;
+
+  detailViewerTitle.textContent = pack.title;
+  detailViewerCopy.textContent = pack.sourceUrl || `${pack.stickers.length} stickers`;
+  updateDetailFrame();
+  renderStickerGrid(pack);
+
+  document.body.classList.add("viewer-open");
+  detailViewer.setAttribute("aria-hidden", "false");
+}
+
+function closePackViewer() {
+  document.body.classList.remove("viewer-open");
+  detailViewer.setAttribute("aria-hidden", "true");
+  detailFrameVideo.pause();
+}
+
+function pointInPolygon(x, y, points) {
+  let inside = false;
+  for (let i = 0, j = points.length - 1; i < points.length; j = i++) {
+    const xi = points[i].x;
+    const yi = points[i].y;
+    const xj = points[j].x;
+    const yj = points[j].y;
+    const intersects = ((yi > y) !== (yj > y))
+      && (x < ((xj - xi) * (y - yi)) / ((yj - yi) || 1e-7) + xi);
+    if (intersects) inside = !inside;
+  }
+  return inside;
+}
+
+function getFrameHitRect(frameEl) {
+  const probe = frameEl.querySelector(".frame-art-window") || frameEl;
+  const rect = probe.getBoundingClientRect();
+
+  if (rect.width < 2 || rect.height < 2) {
+    return null;
+  }
+
+  if (
+    rect.right < -80
+    || rect.left > window.innerWidth + 80
+    || rect.bottom < -80
+    || rect.top > window.innerHeight + 80
+  ) {
+    return null;
+  }
+
+  const padX = Math.max(18, rect.width * 0.62);
+  const padY = Math.max(18, rect.height * 0.62);
+
+  return {
+    left: rect.left - padX,
+    right: rect.right + padX,
+    top: rect.top - padY,
+    bottom: rect.bottom + padY,
+    centerX: rect.left + (rect.width / 2),
+    centerY: rect.top + (rect.height / 2)
+  };
+}
+
+function findFrameAtPoint(clientX, clientY) {
+  const frames = [...document.querySelectorAll(".frame-container")];
+  let bestFrame = null;
+  let bestDistance = Infinity;
+
+  frames.forEach((frameEl) => {
+    const hitRect = getFrameHitRect(frameEl);
+    if (!hitRect) return;
+    if (
+      clientX < hitRect.left
+      || clientX > hitRect.right
+      || clientY < hitRect.top
+      || clientY > hitRect.bottom
+    ) {
+      return;
+    }
+
+    const distance = ((clientX - hitRect.centerX) ** 2) + ((clientY - hitRect.centerY) ** 2);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestFrame = frameEl;
+    }
+  });
+
+  return bestFrame;
+}
+
+function setHoveredFrame(frameEl) {
+  if (hoveredFrameEl === frameEl) return;
+
+  hoveredFrameEl = frameEl;
+
+  document.body.classList.toggle("frame-hovering", Boolean(hoveredFrameEl));
+  updateFrameHoverIndicator(hoveredFrameEl);
+}
+
+function updateFrameHoverIndicator(frameEl) {
+  if (!frameHoverIndicator) return;
+
+  if (!frameEl) {
+    frameHoverIndicator.style.opacity = "0";
+    frameHoverIndicator.style.width = "0px";
+    frameHoverIndicator.style.height = "0px";
+    return;
+  }
+
+  const rect = frameEl.getBoundingClientRect();
+  if (rect.width < 6 || rect.height < 6) {
+    frameHoverIndicator.style.opacity = "0";
+    return;
+  }
+
+  const padX = Math.max(10, rect.width * 0.04);
+  const padY = Math.max(10, rect.height * 0.04);
+  const x = rect.left - padX;
+  const y = rect.top - padY;
+  const width = rect.width + padX * 2;
+  const height = rect.height + padY * 2;
+
+  frameHoverIndicator.style.transform = `translate(${x}px, ${y}px)`;
+  frameHoverIndicator.style.width = `${width}px`;
+  frameHoverIndicator.style.height = `${height}px`;
+  frameHoverIndicator.style.opacity = "1";
+}
+
+function resolvePackAsset(packName, relativePath) {
+  return `./packs/${packName}/${relativePath}?v=${ASSET_VERSION}`;
+}
+
+function normalizeManifestPack(manifest) {
+  return {
+    id: manifest.id,
+    title: manifest.title || manifest.name,
+    sourceUrl: manifest.source_url || "",
+    cover: resolvePackAsset(manifest.name, manifest.cover),
+    stickers: manifest.stickers.map((sticker, stickerIndex) => ({
+      id: sticker.id || `${manifest.id}-${stickerIndex + 1}`,
+      title: sticker.title || `Sticker ${String(stickerIndex + 1).padStart(2, "0")}`,
+      emoji: sticker.emoji || "",
+      kind: sticker.kind || "static",
+      file: resolvePackAsset(manifest.name, sticker.file),
+      preview: sticker.preview
+        ? resolvePackAsset(manifest.name, sticker.preview)
+        : resolvePackAsset(manifest.name, sticker.file)
+    }))
+  };
+}
+
+async function loadLocalStickerPacks() {
+  try {
+    const indexResponse = await fetch(`./packs/index.json?v=${ASSET_VERSION}`, { cache: "no-store" });
+    if (!indexResponse.ok) return;
+
+    const packNames = await indexResponse.json();
+    if (!Array.isArray(packNames) || !packNames.length) return;
+
+    const manifests = await Promise.all(
+      packNames.map(async (packName) => {
+        const response = await fetch(`./packs/${packName}/manifest.json?v=${ASSET_VERSION}`, { cache: "no-store" });
+        if (!response.ok) return null;
+        return response.json();
+      })
+    );
+
+    const realPacks = manifests.filter(Boolean).map(normalizeManifestPack);
+    if (realPacks.length) {
+      stickerPacks = [...realPacks, ...DEFAULT_STICKER_PACKS].slice(0, PACK_COUNT);
+    }
+  } catch (error) {
+    console.error("Failed to load local sticker packs", error);
+  }
+}
+
+detailViewerBackdrop.addEventListener("click", closePackViewer);
+detailViewerClose.addEventListener("click", closePackViewer);
+window.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closePackViewer();
+  }
+});
+
+document.addEventListener("pointermove", (event) => {
+  if (detailViewer.getAttribute("aria-hidden") === "false") {
+    setHoveredFrame(null);
+    return;
+  }
+
+  setHoveredFrame(findFrameAtPoint(event.clientX, event.clientY));
+}, { passive: true });
+
+document.addEventListener("pointerdown", () => {
+  if (detailViewer.getAttribute("aria-hidden") === "false") {
+    setHoveredFrame(null);
+  }
+}, { passive: true });
+
+window.addEventListener("blur", () => {
+  setHoveredFrame(null);
+});
+
+window.addEventListener("resize", () => {
+  if (hoveredFrameEl) {
+    updateFrameHoverIndicator(hoveredFrameEl);
+  }
+});
+
+document.addEventListener("click", (event) => {
+  if (detailViewer.getAttribute("aria-hidden") === "false") return;
+  if (event.target.closest(".frame-container")) return;
+  if (event.target.closest(".detail-viewer")) return;
+
+  const frameEl = findFrameAtPoint(event.clientX, event.clientY);
+  if (!frameEl) return;
+
+  event.preventDefault();
+  openPack(Number(frameEl.dataset.packIndex));
+});
+
 function renderWalls() {
+  setHoveredFrame(null);
   Object.keys(LAYOUT).forEach(wallName => {
     const wallEl = document.getElementById(wallName);
     if (!wallEl) return;
     wallEl.querySelectorAll(".frame-container").forEach(f => f.remove());
-    LAYOUT[wallName].forEach(slot => wallEl.appendChild(buildFrame(slot, wallName)));
+    const slots = LAYOUT[wallName];
+    applyWallLighting(wallEl, slots);
+    slots.forEach(slot => wallEl.appendChild(buildFrame(slot, wallName)));
   });
 }
 
@@ -179,7 +564,9 @@ function buildGeodesicCeiling() {
     }
   }
 
-  // Overcast cloud layer — large soft shapes for realistic cloudy sky
+  const pathData = trianglePaths.join(' ');
+
+  // Overcast cloud layer
   const clouds = [];
   const cloudData = [
     [cx, cy, 500, 200, 0.25],
@@ -197,8 +584,6 @@ function buildGeodesicCeiling() {
     clouds.push(`<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="white" opacity="${op}"/>`);
   });
 
-  const pathData = trianglePaths.join(' ');
-
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}">
     <defs>
       <radialGradient id="sky">
@@ -207,27 +592,60 @@ function buildGeodesicCeiling() {
         <stop offset="60%" stop-color="#b0c0d0"/>
         <stop offset="100%" stop-color="#8a9cae"/>
       </radialGradient>
-      <filter id="beam3d" x="-3%" y="-3%" width="106%" height="106%">
-        <feDropShadow dx="1.5" dy="2" stdDeviation="1.2" flood-color="#0a0e12" flood-opacity="0.45"/>
+      <linearGradient id="beamMetal" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#f4f8fc"/>
+        <stop offset="18%" stop-color="#c7d1db"/>
+        <stop offset="48%" stop-color="#56616e"/>
+        <stop offset="72%" stop-color="#c9d1da"/>
+        <stop offset="100%" stop-color="#2d353d"/>
+      </linearGradient>
+      <linearGradient id="beamSpecular" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="rgba(255,255,255,0)"/>
+        <stop offset="34%" stop-color="rgba(255,255,255,0.05)"/>
+        <stop offset="50%" stop-color="rgba(255,255,255,0.75)"/>
+        <stop offset="66%" stop-color="rgba(255,255,255,0.06)"/>
+        <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+      </linearGradient>
+      <radialGradient id="domeGloss" cx="46%" cy="24%" r="44%">
+        <stop offset="0%" stop-color="rgba(255,255,255,0.92)"/>
+        <stop offset="16%" stop-color="rgba(255,255,255,0.4)"/>
+        <stop offset="36%" stop-color="rgba(255,255,255,0.12)"/>
+        <stop offset="60%" stop-color="rgba(255,255,255,0.03)"/>
+        <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+      </radialGradient>
+      <filter id="beam3d" x="-8%" y="-8%" width="116%" height="116%">
+        <feDropShadow dx="2.8" dy="3.5" stdDeviation="1.8" flood-color="#081018" flood-opacity="0.58"/>
+        <feDropShadow dx="-0.8" dy="-0.6" stdDeviation="0.7" flood-color="#f4f8fc" flood-opacity="0.32"/>
+      </filter>
+      <filter id="glossBlur" x="-12%" y="-12%" width="124%" height="124%">
+        <feGaussianBlur stdDeviation="18"/>
       </filter>
     </defs>
     <!-- Overcast sky -->
     <circle cx="${cx}" cy="${cy}" r="${maxR + 60}" fill="url(#sky)"/>
     ${clouds.join('\n    ')}
+    <!-- Broad dome gloss -->
+    <ellipse cx="${cx - 60}" cy="${cy - 230}" rx="730" ry="290" fill="url(#domeGloss)" opacity="0.85" filter="url(#glossBlur)"/>
+    <ellipse cx="${cx + 120}" cy="${cy - 40}" rx="500" ry="120" fill="url(#domeGloss)" opacity="0.24" filter="url(#glossBlur)" transform="rotate(-8 ${cx} ${cy})"/>
     <!-- Shadow layer — offset for depth -->
-    <path d="${pathData}" fill="none" stroke="#12181e" stroke-width="5" stroke-linejoin="round" opacity="0.25" transform="translate(2,2.5)"/>
+    <path d="${pathData}" fill="none" stroke="#0f151c" stroke-width="7.8" stroke-linejoin="round" opacity="0.32" transform="translate(3.1,3.8)"/>
     <!-- Main steel beams with drop shadow filter -->
-    <path d="${pathData}" fill="rgba(200,215,230,0.04)" stroke="#2e363e" stroke-width="4.5" stroke-linejoin="round" filter="url(#beam3d)"/>
+    <path d="${pathData}" fill="rgba(215,228,238,0.05)" stroke="url(#beamMetal)" stroke-width="6.4" stroke-linejoin="round" filter="url(#beam3d)"/>
+    <!-- Gloss pass across the beam faces -->
+    <path d="${pathData}" fill="none" stroke="url(#beamSpecular)" stroke-width="4.6" stroke-linejoin="round" opacity="0.86"/>
     <!-- Highlight edge — top-left of beams -->
-    <path d="${pathData}" fill="none" stroke="rgba(210,220,230,0.4)" stroke-width="1.2" stroke-linejoin="round" transform="translate(-0.7,-0.7)"/>
+    <path d="${pathData}" fill="none" stroke="rgba(255,255,255,0.62)" stroke-width="1.5" stroke-linejoin="round" transform="translate(-1.1,-1.1)" opacity="0.82"/>
+    <!-- Lower metallic shadow edge -->
+    <path d="${pathData}" fill="none" stroke="rgba(20,26,34,0.46)" stroke-width="2.2" stroke-linejoin="round" transform="translate(1.2,1.6)" opacity="0.82"/>
     <!-- Outer rim — 3D thick ring -->
-    <circle cx="${cx}" cy="${cy}" r="${maxR + 5}" fill="none" stroke="rgba(180,190,200,0.25)" stroke-width="3"/>
-    <circle cx="${cx}" cy="${cy}" r="${maxR}" fill="none" stroke="#1a2028" stroke-width="12"/>
-    <circle cx="${cx}" cy="${cy}" r="${maxR - 3}" fill="none" stroke="#4a5460" stroke-width="4"/>
+    <circle cx="${cx}" cy="${cy}" r="${maxR + 8}" fill="none" stroke="rgba(255,255,255,0.34)" stroke-width="4"/>
+    <circle cx="${cx}" cy="${cy}" r="${maxR + 1}" fill="none" stroke="#161d26" stroke-width="14"/>
+    <circle cx="${cx}" cy="${cy}" r="${maxR - 3}" fill="none" stroke="url(#beamMetal)" stroke-width="6"/>
+    <circle cx="${cx}" cy="${cy}" r="${maxR - 6}" fill="none" stroke="rgba(255,255,255,0.42)" stroke-width="2.2" opacity="0.78"/>
     <!-- Center hub — 3D bolt -->
-    <circle cx="${cx}" cy="${cy}" r="18" fill="#1a2028"/>
-    <circle cx="${cx}" cy="${cy}" r="12" fill="#3a4450"/>
-    <circle cx="${cx}" cy="${cy}" r="6" fill="#5a6470" opacity="0.8"/>
+    <circle cx="${cx}" cy="${cy}" r="21" fill="#111820"/>
+    <circle cx="${cx}" cy="${cy}" r="15" fill="url(#beamMetal)"/>
+    <circle cx="${cx}" cy="${cy}" r="8" fill="#eef4fa" opacity="0.9"/>
   </svg>`;
 
   el.style.backgroundImage = `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")`;
@@ -250,6 +668,7 @@ function nextPaint() {
 }
 
 async function initializeScene() {
+  await loadLocalStickerPacks();
   renderWalls();
   buildGeodesicCeiling();
 

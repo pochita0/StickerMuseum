@@ -1,0 +1,200 @@
+{
+  "id": "jdu_aeri005_by_fStikBot",
+  "name": "jdu_aeri005_by_fStikBot",
+  "title": "두업티콘",
+  "source_url": "https://t.me/addstickers/jdu_aeri005_by_fStikBot",
+  "channel_url": "https://t.me/shwhwgsicj",
+  "cover": "cover.webp",
+  "stickers": [
+    {
+      "id": "AgADXykAAojfyFU",
+      "title": "Sticker 01",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/001.webm",
+      "preview": "thumbs/001.webp",
+      "width": 509,
+      "height": 512
+    },
+    {
+      "id": "AgADsCMAAv_byVU",
+      "title": "Sticker 02",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/002.webm",
+      "preview": "thumbs/002.webp",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "AgADXBYAAiBV0FU",
+      "title": "Sticker 03",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/003.webm",
+      "preview": "thumbs/003.webp",
+      "width": 512,
+      "height": 487
+    },
+    {
+      "id": "AgADGxwAAm2B2FU",
+      "title": "Sticker 04",
+      "emoji": "🌟",
+      "kind": "static",
+      "file": "stickers/004.webp",
+      "preview": "thumbs/004.webp",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "AgADTiMAAmfU2FU",
+      "title": "Sticker 05",
+      "emoji": "🌟",
+      "kind": "static",
+      "file": "stickers/005.webp",
+      "preview": "thumbs/005.webp",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "AgADPhkAAtBA2FU",
+      "title": "Sticker 06",
+      "emoji": "🌟",
+      "kind": "static",
+      "file": "stickers/006.webp",
+      "preview": "thumbs/006.webp",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "AgADpx0AAhp84FU",
+      "title": "Sticker 07",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/007.webm",
+      "preview": "thumbs/007.webp",
+      "width": 512,
+      "height": 377
+    },
+    {
+      "id": "AgADDh8AAvCl8VU",
+      "title": "Sticker 08",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/008.webm",
+      "preview": "thumbs/008.webp",
+      "width": 512,
+      "height": 464
+    },
+    {
+      "id": "AgADEhoAAljP8VU",
+      "title": "Sticker 09",
+      "emoji": "🌟",
+      "kind": "static",
+      "file": "stickers/009.webp",
+      "preview": "thumbs/009.webp",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "AgADURsAAt6z-FU",
+      "title": "Sticker 10",
+      "emoji": "🌟",
+      "kind": "static",
+      "file": "stickers/010.webp",
+      "preview": "thumbs/010.webp",
+      "width": 510,
+      "height": 512
+    },
+    {
+      "id": "AgADsRkAAgKR-VU",
+      "title": "Sticker 11",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/011.webm",
+      "preview": "thumbs/011.webp",
+      "width": 508,
+      "height": 512
+    },
+    {
+      "id": "AgAD_BoAAu4WGVY",
+      "title": "Sticker 12",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/012.webm",
+      "preview": "thumbs/012.webp",
+      "width": 506,
+      "height": 512
+    },
+    {
+      "id": "AgADvR4AAk3--VU",
+      "title": "Sticker 13",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/013.webm",
+      "preview": "thumbs/013.webp",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "AgAD7hgAAgLAWFY",
+      "title": "Sticker 14",
+      "emoji": "🌟",
+      "kind": "static",
+      "file": "stickers/014.webp",
+      "preview": "thumbs/014.webp",
+      "width": 510,
+      "height": 512
+    },
+    {
+      "id": "AgAD9RsAAhLlUFY",
+      "title": "Sticker 15",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/015.webm",
+      "preview": "thumbs/015.webp",
+      "width": 505,
+      "height": 512
+    },
+    {
+      "id": "AgADyRgAAjWRWFY",
+      "title": "Sticker 16",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/016.webm",
+      "preview": "thumbs/016.webp",
+      "width": 501,
+      "height": 512
+    },
+    {
+      "id": "AgAD5iEAAlreqVY",
+      "title": "Sticker 17",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/017.webm",
+      "preview": "thumbs/017.webp",
+      "width": 512,
+      "height": 509
+    },
+    {
+      "id": "AgADbhwAAuSrWVQ",
+      "title": "Sticker 18",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/018.webm",
+      "preview": "thumbs/018.webp",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "AgADhRwAAt-M-FQ",
+      "title": "Sticker 19",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/019.webm",
+      "preview": "thumbs/019.webp",
+      "width": 512,
+      "height": 512
+    }
+  ]
+}

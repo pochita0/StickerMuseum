@@ -1,0 +1,150 @@
+{
+  "id": "PikaKim_aeri005_by_fStikBot",
+  "name": "PikaKim_aeri005_by_fStikBot",
+  "title": "피카티콘",
+  "source_url": "https://t.me/addstickers/PikaKim_aeri005_by_fStikBot",
+  "channel_url": "https://t.me/Pika_Kim",
+  "cover": "cover.webp",
+  "stickers": [
+    {
+      "id": "AgAD4RoAAmWOUFQ",
+      "title": "Sticker 01",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/001.webm",
+      "preview": "thumbs/001.webp",
+      "width": 509,
+      "height": 512
+    },
+    {
+      "id": "AgADRicAArT8WFQ",
+      "title": "Sticker 02",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/002.webm",
+      "preview": "thumbs/002.webp",
+      "width": 511,
+      "height": 512
+    },
+    {
+      "id": "AgADpBoAAo1jWFQ",
+      "title": "Sticker 03",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/003.webm",
+      "preview": "thumbs/003.webp",
+      "width": 512,
+      "height": 511
+    },
+    {
+      "id": "AgADSBoAAoIqWFQ",
+      "title": "Sticker 04",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/004.webm",
+      "preview": "thumbs/004.webp",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "AgADkRsAAtbAWFQ",
+      "title": "Sticker 05",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/005.webm",
+      "preview": "thumbs/005.webp",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "AgADYRwAAnjhWFQ",
+      "title": "Sticker 06",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/006.webm",
+      "preview": "thumbs/006.webp",
+      "width": 509,
+      "height": 512
+    },
+    {
+      "id": "AgADvh0AAhckWVQ",
+      "title": "Sticker 07",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/007.webm",
+      "preview": "thumbs/007.webp",
+      "width": 511,
+      "height": 512
+    },
+    {
+      "id": "AgADchkAAhoCWFQ",
+      "title": "Sticker 08",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/008.webm",
+      "preview": "thumbs/008.webp",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "id": "AgAD-R0AAgxhYFQ",
+      "title": "Sticker 09",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/009.webm",
+      "preview": "thumbs/009.webp",
+      "width": 512,
+      "height": 494
+    },
+    {
+      "id": "AgADbR4AAvQLYFQ",
+      "title": "Sticker 10",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/010.webm",
+      "preview": "thumbs/010.webp",
+      "width": 511,
+      "height": 512
+    },
+    {
+      "id": "AgADCBsAAoxCYVQ",
+      "title": "Sticker 11",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/011.webm",
+      "preview": "thumbs/011.webp",
+      "width": 512,
+      "height": 476
+    },
+    {
+      "id": "AgADMh4AAmCXYVQ",
+      "title": "Sticker 12",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/012.webm",
+      "preview": "thumbs/012.webp",
+      "width": 512,
+      "height": 454
+    },
+    {
+      "id": "AgADriAAAk07QFU",
+      "title": "Sticker 13",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/013.webm",
+      "preview": "thumbs/013.webp",
+      "width": 512,
+      "height": 509
+    },
+    {
+      "id": "AgADsxsAAswSQFU",
+      "title": "Sticker 14",
+      "emoji": "🌟",
+      "kind": "video",
+      "file": "stickers/014.webm",
+      "preview": "thumbs/014.webp",
+      "width": 512,
+      "height": 444
+    }
+  ]
+}

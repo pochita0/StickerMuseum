@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Sticker Museum Viewer</title>
+  <link rel="preload" href="./gallery_scene_static_mirror_wall.png?v=20260316b" as="image">
+  <link rel="preload" href="./gold_frame_user_square_opaque.png?v=20260316b" as="image">
+  <link rel="preload" href="./gold_frame_gloss_mask.png?v=20260316b" as="image">
+  <link rel="preload" href="./fonts/KoPubWorldBatangBold.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="./fonts/BlackAutumn-Regular.otf" as="font" type="font/otf" crossorigin>
+  <link rel="stylesheet" href="./viewer.css?v=20260316b">
+</head>
+
+<body>
+  <main class="viewer-page glass-app-shell" id="viewerPage" style="display: none;">
+    <div class="viewer-page__bg glass-wallpaper" aria-hidden="true">
+      <img id="viewerBackground" alt="">
+    </div>
+    <div class="viewer-page__shade glass-wallpaper-shade" aria-hidden="true"></div>
+
+    <a class="viewer-close" href="./" aria-label="갤러리로 돌아가기">&times;</a>
+
+    <div class="viewer-page__content glass-main-shell">
+      <section class="viewer-stage" aria-label="스티커 상세 전시">
+        <div class="viewer-stage__layout">
+          <div class="viewer-frame-wrap">
+            <div class="viewer-frame">
+              <div class="viewer-frame__window">
+                <img class="viewer-frame__art" id="viewerArt" alt="">
+                <video class="viewer-frame__video" id="viewerVideo" autoplay loop muted playsinline hidden></video>
+              </div>
+              <img class="viewer-frame__gold" id="viewerGold" alt="">
+              <span class="viewer-frame__sheen" id="viewerFrameSheen" aria-hidden="true"></span>
+            </div>
+          </div>
+
+          <aside class="viewer-panel glass-card glass-tilt glass-scale-in" aria-label="스티커 목록">
+            <div class="viewer-panel__list-shell glass-card-soft">
+              <div class="viewer-strip__list viewer-panel__list" id="viewerStrip"></div>
+            </div>
+
+            <div class="viewer-panel__actions">
+              <a class="viewer-panel__link glass-btn" id="viewerChannel" href="#" target="_blank" rel="noreferrer noopener" hidden>Channel</a>
+              <a class="viewer-panel__link glass-btn" id="viewerSource" href="#" target="_blank" rel="noreferrer noopener" hidden>Sticker Pack</a>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <main class="viewer-empty" id="viewerEmpty" style="display: none;">
+    <section class="viewer-empty__card">
+      <h1 class="viewer-empty__title">전시를 찾지 못했어요</h1>
+      <p class="viewer-empty__copy">요청한 액자가 없거나 아직 데이터를 불러오지 못했습니다.</p>
+      <p class="viewer-empty__copy"><a class="viewer-empty__link" href="./">갤러리로 돌아가기</a></p>
+    </section>
+  </main>
+
+  <script type="module" src="./viewer.js?v=20260316b"></script>
+</body>
+
+</html>

@@ -11,6 +11,12 @@ const lightLayer = document.getElementById("galleryLightLayer");
 const hitLayer = document.getElementById("galleryHitLayer");
 const darknessSlider = document.getElementById("galleryDarkness");
 const DARKNESS_STORAGE_KEY = "sticker-museum-gallery-darkness";
+const DEFAULT_DARKNESS_SLIDER_VALUE = 72;
+let lightMapCanvas = null;
+let lightMapImage = null;
+let lightMapAnimationFrame = 0;
+let spotlightConfigs = [];
+let lightLayerResizeObserver = null;
 
 const FRAME_INNER = {
   left: Number.parseFloat(FRAME_WINDOW.left),
@@ -76,7 +82,7 @@ function restoreDarknessLevel() {
     // Ignore storage access failures and fall back to the slider's default value.
   }
 
-  return clampDarkness(Number(darknessSlider?.value ?? 0) / 100);
+  return clampDarkness(Number(darknessSlider?.value ?? DEFAULT_DARKNESS_SLIDER_VALUE) / 100);
 }
 
 function saveDarknessLevel(level) {
@@ -115,10 +121,240 @@ function getWallStartTop(xPercent) {
   return WALL_START_CURVE[WALL_START_CURVE.length - 1][1];
 }
 
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function getFixtureSize() {
+  const viewportWidth = window.innerWidth || 1440;
+  return {
+    width: clamp(viewportWidth * 0.0235, 34, 46),
+    height: clamp(viewportWidth * 0.0115, 17, 22)
+  };
+}
+
+function buildSpotlightConfig(group, groupIndex) {
+  const slots = group.map((slotIndex) => HOTSPOTS[slotIndex]).filter(Boolean);
+  if (!slots.length) return null;
+
+  const isEdgeGroup = groupIndex === 0 || groupIndex === LIGHT_GROUPS.length - 1;
+  const left = Math.min(...slots.map((slot) => slot.left));
+  const right = Math.max(...slots.map((slot) => slot.left + slot.width));
+  const center = (left + right) / 2;
+  const span = right - left;
+  const fixtureDrop = isEdgeGroup ? 3.35 : 1.15;
+  const fixtureTop = getWallStartTop(center) + fixtureDrop;
+  const beamBottom = Math.max(...slots.map((slot) => slot.top + slot.height * 1.08));
+  const spread = span * (isEdgeGroup ? 1.38 : 1.32);
+  const beamHeight = Math.max(38, beamBottom - fixtureTop);
+  const rotate = center < 50 ? Math.max(-8, (center - 50) * 0.16) : Math.min(8, (center - 50) * 0.16);
+
+  return {
+    center,
+    fixtureTop,
+    spread,
+    beamHeight,
+    rotate,
+    intensity: isEdgeGroup ? 1.08 : 0.96,
+    fixtureRotate: center < 50 ? 9 : -9,
+    isEdgeGroup
+  };
+}
+
+function ensureLightMapAssets() {
+  if (!lightMapCanvas) {
+    lightMapCanvas = document.createElement("canvas");
+  }
+
+  if (!lightMapImage) {
+    lightMapImage = document.createElement("img");
+    lightMapImage.className = "gallery-light-map";
+    lightMapImage.alt = "";
+    lightMapImage.setAttribute("aria-hidden", "true");
+    lightMapImage.decoding = "async";
+  }
+
+  return { canvas: lightMapCanvas, image: lightMapImage };
+}
+
+function drawBeamPolygon(ctx, topHalfWidth, bottomHalfWidth, height) {
+  ctx.beginPath();
+  ctx.moveTo(-topHalfWidth, 0);
+  ctx.lineTo(topHalfWidth, 0);
+  ctx.lineTo(bottomHalfWidth, height);
+  ctx.lineTo(-bottomHalfWidth, height);
+  ctx.closePath();
+}
+
+function drawSpotlightBeam(ctx, config, layerWidth, layerHeight) {
+  const fixtureSize = getFixtureSize();
+  const fixtureRotateRad = (config.fixtureRotate * Math.PI) / 180;
+  const lensOffsetX = fixtureSize.width * -0.16;
+  const lensOffsetY = fixtureSize.height * 0.1;
+  const rotatedLensOffsetX = lensOffsetX * Math.cos(fixtureRotateRad) - lensOffsetY * Math.sin(fixtureRotateRad);
+  const rotatedLensOffsetY = lensOffsetX * Math.sin(fixtureRotateRad) + lensOffsetY * Math.cos(fixtureRotateRad);
+  const x = layerWidth * (config.center / 100) + rotatedLensOffsetX;
+  const y = layerHeight * (config.fixtureTop / 100) + rotatedLensOffsetY + fixtureSize.height * 0.58;
+  const beamHeight = layerHeight * (config.beamHeight / 100);
+  const spread = layerWidth * (config.spread / 100);
+  const intensity = config.intensity;
+
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate((config.rotate * Math.PI) / 180);
+  ctx.globalCompositeOperation = "screen";
+
+  ctx.save();
+  ctx.filter = "blur(16px)";
+  const headGlow = ctx.createRadialGradient(0, beamHeight * 0.04, 0, 0, beamHeight * 0.04, spread * 0.12);
+  headGlow.addColorStop(0, `rgba(255, 249, 233, ${0.38 * intensity})`);
+  headGlow.addColorStop(0.45, `rgba(255, 241, 209, ${0.16 * intensity})`);
+  headGlow.addColorStop(1, "rgba(255, 236, 198, 0)");
+  ctx.fillStyle = headGlow;
+  ctx.beginPath();
+  ctx.ellipse(0, beamHeight * 0.05, spread * 0.12, beamHeight * 0.06, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.filter = "blur(6px)";
+  const outerGradient = ctx.createLinearGradient(0, 0, 0, beamHeight);
+  outerGradient.addColorStop(0, `rgba(255, 240, 206, ${0.2 * intensity})`);
+  outerGradient.addColorStop(0.3, `rgba(255, 236, 198, ${0.12 * intensity})`);
+  outerGradient.addColorStop(0.68, `rgba(255, 236, 198, ${0.06 * intensity})`);
+  outerGradient.addColorStop(1, "rgba(255, 236, 198, 0)");
+  ctx.fillStyle = outerGradient;
+  drawBeamPolygon(ctx, spread * 0.04, spread * 0.54, beamHeight);
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.filter = "blur(3px)";
+  const midGradient = ctx.createLinearGradient(0, 0, 0, beamHeight);
+  midGradient.addColorStop(0, `rgba(255, 246, 221, ${0.28 * intensity})`);
+  midGradient.addColorStop(0.34, `rgba(255, 243, 213, ${0.18 * intensity})`);
+  midGradient.addColorStop(0.7, `rgba(255, 236, 198, ${0.08 * intensity})`);
+  midGradient.addColorStop(1, "rgba(255, 236, 198, 0)");
+  ctx.fillStyle = midGradient;
+  drawBeamPolygon(ctx, spread * 0.026, spread * 0.38, beamHeight);
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.filter = "blur(1.5px)";
+  const coreGradient = ctx.createLinearGradient(0, 0, 0, beamHeight);
+  coreGradient.addColorStop(0, `rgba(255, 252, 241, ${0.78 * intensity})`);
+  coreGradient.addColorStop(0.32, `rgba(255, 248, 226, ${0.46 * intensity})`);
+  coreGradient.addColorStop(0.72, `rgba(255, 241, 209, ${0.16 * intensity})`);
+  coreGradient.addColorStop(1, "rgba(255, 236, 198, 0)");
+  ctx.fillStyle = coreGradient;
+  drawBeamPolygon(ctx, spread * 0.012, spread * 0.15, beamHeight);
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.filter = "blur(12px)";
+  const sideFeather = ctx.createLinearGradient(-spread * 0.48, beamHeight * 0.14, spread * 0.48, beamHeight * 0.14);
+  sideFeather.addColorStop(0, "rgba(255, 236, 198, 0)");
+  sideFeather.addColorStop(0.16, `rgba(255, 236, 198, ${0.12 * intensity})`);
+  sideFeather.addColorStop(0.5, `rgba(255, 244, 214, ${0.18 * intensity})`);
+  sideFeather.addColorStop(0.84, `rgba(255, 236, 198, ${0.12 * intensity})`);
+  sideFeather.addColorStop(1, "rgba(255, 236, 198, 0)");
+  ctx.fillStyle = sideFeather;
+  drawBeamPolygon(ctx, spread * 0.02, spread * 0.28, beamHeight);
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.filter = "blur(10px)";
+  const reflectGradient = ctx.createLinearGradient(0, beamHeight * 0.56, 0, beamHeight);
+  reflectGradient.addColorStop(0, "rgba(255, 236, 198, 0)");
+  reflectGradient.addColorStop(0.54, `rgba(255, 241, 209, ${0.08 * intensity})`);
+  reflectGradient.addColorStop(1, `rgba(255, 236, 198, ${0.16 * intensity})`);
+  ctx.fillStyle = reflectGradient;
+  ctx.translate(0, beamHeight * 0.56);
+  drawBeamPolygon(ctx, spread * 0.1, spread * 0.34, beamHeight * 0.46);
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.filter = "blur(18px)";
+  const poolGradient = ctx.createRadialGradient(0, beamHeight * 0.98, 0, 0, beamHeight * 0.98, spread * 0.28);
+  poolGradient.addColorStop(0, `rgba(255, 249, 233, ${0.28 * intensity})`);
+  poolGradient.addColorStop(0.34, `rgba(255, 241, 209, ${0.16 * intensity})`);
+  poolGradient.addColorStop(0.68, `rgba(255, 236, 198, ${0.08 * intensity})`);
+  poolGradient.addColorStop(1, "rgba(255, 236, 198, 0)");
+  ctx.fillStyle = poolGradient;
+  ctx.beginPath();
+  ctx.ellipse(0, beamHeight * 0.98, spread * 0.3, beamHeight * 0.08, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  ctx.restore();
+}
+
+function renderLightMap() {
+  if (!lightLayer || !spotlightConfigs.length) return;
+
+  const { canvas, image } = ensureLightMapAssets();
+  const width = lightLayer.clientWidth;
+  const height = lightLayer.clientHeight;
+  if (!width || !height) return;
+
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(width * dpr);
+  canvas.height = Math.round(height * dpr);
+
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, width, height);
+
+  spotlightConfigs.forEach((config) => {
+    drawSpotlightBeam(ctx, config, width, height);
+  });
+
+  image.src = canvas.toDataURL("image/png");
+}
+
+function scheduleLightMapRender() {
+  if (lightMapAnimationFrame) {
+    cancelAnimationFrame(lightMapAnimationFrame);
+  }
+
+  lightMapAnimationFrame = window.requestAnimationFrame(() => {
+    lightMapAnimationFrame = 0;
+    renderLightMap();
+  });
+}
+
+function createLightFixture(config) {
+  const fixture = document.createElement("span");
+  fixture.className = "gallery-light-fixture";
+  fixture.style.left = `${config.center}%`;
+  fixture.style.top = `${config.fixtureTop}%`;
+  fixture.style.setProperty("--fixture-rotate", `${config.fixtureRotate}deg`);
+  fixture.setAttribute("aria-hidden", "true");
+  return fixture;
+}
+
+function setupLightMapObserver() {
+  if (lightLayerResizeObserver || !lightLayer) return;
+
+  if ("ResizeObserver" in window) {
+    lightLayerResizeObserver = new ResizeObserver(() => {
+      scheduleLightMapRender();
+    });
+    lightLayerResizeObserver.observe(lightLayer);
+  }
+
+  window.addEventListener("resize", scheduleLightMapRender, { passive: true });
+}
+
 async function renderGallery() {
   const packs = await loadStickerPacks();
   const fragment = document.createDocumentFragment();
   const lightFragment = document.createDocumentFragment();
+  const { image } = ensureLightMapAssets();
 
   HOTSPOTS.forEach((slot) => {
     const pack = packs[slot.packIndex];
@@ -171,43 +407,17 @@ async function renderGallery() {
     fragment.appendChild(link);
   });
 
-  LIGHT_GROUPS.forEach((group, groupIndex) => {
-    const slots = group.map((slotIndex) => HOTSPOTS[slotIndex]).filter(Boolean);
-    if (!slots.length) return;
+  spotlightConfigs = LIGHT_GROUPS.map(buildSpotlightConfig).filter(Boolean);
+  lightFragment.appendChild(image);
 
-    const left = Math.min(...slots.map((slot) => slot.left));
-    const right = Math.max(...slots.map((slot) => slot.left + slot.width));
-    const center = (left + right) / 2;
-    const span = right - left;
-    const fixtureDrop = groupIndex === 0 || groupIndex === LIGHT_GROUPS.length - 1 ? 3.35 : 1.15;
-    const fixtureTop = getWallStartTop(center) + fixtureDrop;
-    const beamBottom = Math.max(...slots.map((slot) => slot.top + slot.height * 1.08));
-    const spread = span * (groupIndex === 0 || groupIndex === 3 ? 1.38 : 1.32);
-    const beamHeight = Math.max(38, beamBottom - fixtureTop);
-    const rotate = center < 50 ? Math.max(-8, (center - 50) * 0.16) : Math.min(8, (center - 50) * 0.16);
-
-    const spotlight = document.createElement("div");
-    spotlight.className = "gallery-spotlight";
-    spotlight.style.left = `${center - spread / 2}%`;
-    spotlight.style.top = `${fixtureTop}%`;
-    spotlight.style.width = `${spread}%`;
-    spotlight.style.height = `${beamHeight}%`;
-    spotlight.style.setProperty("--spot-rotate", `${rotate}deg`);
-    spotlight.style.setProperty("--spot-fixture-shift", "0%");
-
-    spotlight.innerHTML = `
-      <span class="gallery-spotlight__stem"></span>
-      <span class="gallery-spotlight__head"></span>
-      <span class="gallery-spotlight__beam-soft"></span>
-      <span class="gallery-spotlight__beam"></span>
-      <span class="gallery-spotlight__pool"></span>
-    `;
-
-    lightFragment.appendChild(spotlight);
+  spotlightConfigs.forEach((config) => {
+    lightFragment.appendChild(createLightFixture(config));
   });
 
   lightLayer.replaceChildren(lightFragment);
   hitLayer.replaceChildren(fragment);
+  setupLightMapObserver();
+  scheduleLightMapRender();
 }
 
 renderGallery();
